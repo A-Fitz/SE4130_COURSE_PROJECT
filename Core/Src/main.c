@@ -41,11 +41,39 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
+/* Definitions for checkUserInput */
+osThreadId_t checkUserInputHandle;
+const osThreadAttr_t checkUserInput_attributes = {
+  .name = "checkUserInput",
   .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for controlMotorPow */
+osThreadId_t controlMotorPowHandle;
+const osThreadAttr_t controlMotorPow_attributes = {
+  .name = "controlMotorPow",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for createAccessPoi */
+osThreadId_t createAccessPoiHandle;
+const osThreadAttr_t createAccessPoi_attributes = {
+  .name = "createAccessPoi",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for checkForConnect */
+osThreadId_t checkForConnectHandle;
+const osThreadAttr_t checkForConnect_attributes = {
+  .name = "checkForConnect",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
+/* Definitions for acceptConnectio */
+osThreadId_t acceptConnectioHandle;
+const osThreadAttr_t acceptConnectio_attributes = {
+  .name = "acceptConnectio",
+  .priority = (osPriority_t) osPriorityLow,
   .stack_size = 128 * 4
 };
 /* USER CODE BEGIN PV */
@@ -54,7 +82,11 @@ const osThreadAttr_t defaultTask_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void StartDefaultTask(void *argument);
+void startCheckUserInput(void *argument);
+void startControlMotorPower(void *argument);
+void startCreateAccessPoint(void *argument);
+void startCheckForConnection(void *argument);
+void startAcceptConnectionRequest(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -116,8 +148,20 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* creation of checkUserInput */
+  checkUserInputHandle = osThreadNew(startCheckUserInput, NULL, &checkUserInput_attributes);
+
+  /* creation of controlMotorPow */
+  controlMotorPowHandle = osThreadNew(startControlMotorPower, NULL, &controlMotorPow_attributes);
+
+  /* creation of createAccessPoi */
+  createAccessPoiHandle = osThreadNew(startCreateAccessPoint, NULL, &createAccessPoi_attributes);
+
+  /* creation of checkForConnect */
+  checkForConnectHandle = osThreadNew(startCheckForConnection, NULL, &checkForConnect_attributes);
+
+  /* creation of acceptConnectio */
+  acceptConnectioHandle = osThreadNew(startAcceptConnectionRequest, NULL, &acceptConnectio_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -181,14 +225,14 @@ void SystemClock_Config(void)
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_startCheckUserInput */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the checkUserInput thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+/* USER CODE END Header_startCheckUserInput */
+void startCheckUserInput(void *argument)
 {
   /* USER CODE BEGIN 5 */
   /* Infinite loop */
@@ -197,6 +241,78 @@ void StartDefaultTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_startControlMotorPower */
+/**
+* @brief Function implementing the controlMotorPow thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startControlMotorPower */
+void startControlMotorPower(void *argument)
+{
+  /* USER CODE BEGIN startControlMotorPower */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startControlMotorPower */
+}
+
+/* USER CODE BEGIN Header_startCreateAccessPoint */
+/**
+* @brief Function implementing the createAccessPoi thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startCreateAccessPoint */
+void startCreateAccessPoint(void *argument)
+{
+  /* USER CODE BEGIN startCreateAccessPoint */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startCreateAccessPoint */
+}
+
+/* USER CODE BEGIN Header_startCheckForConnection */
+/**
+* @brief Function implementing the checkForConnect thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startCheckForConnection */
+void startCheckForConnection(void *argument)
+{
+  /* USER CODE BEGIN startCheckForConnection */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startCheckForConnection */
+}
+
+/* USER CODE BEGIN Header_startAcceptConnectionRequest */
+/**
+* @brief Function implementing the acceptConnectio thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_startAcceptConnectionRequest */
+void startAcceptConnectionRequest(void *argument)
+{
+  /* USER CODE BEGIN startAcceptConnectionRequest */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END startAcceptConnectionRequest */
 }
 
 /**

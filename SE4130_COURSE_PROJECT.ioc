@@ -1,6 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
-FREERTOS.IPParameters=Tasks01
-FREERTOS.Tasks01=defaultTask,24,128,StartDefaultTask,Default,NULL,Dynamic,NULL,NULL
+FREERTOS.FootprintOK=true
+FREERTOS.IPParameters=Tasks01,FootprintOK
+FREERTOS.Tasks01=checkUserInput,24,128,startCheckUserInput,Default,NULL,Dynamic,NULL,NULL;controlMotorPow,24,128,startControlMotorPower,Default,NULL,Dynamic,NULL,NULL;createAccessPoi,24,128,startCreateAccessPoint,Default,NULL,Dynamic,NULL,NULL;checkForConnect,24,128,startCheckForConnection,Default,NULL,Dynamic,NULL,NULL;acceptConnectio,8,128,startAcceptConnectionRequest,Default,NULL,Dynamic,NULL,NULL
 File.Version=6
 KeepUserPlacement=false
 Mcu.Family=STM32F4
