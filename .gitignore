@@ -1,9 +1,11 @@
+### Specific STM32 files to ignore ###
+
 Debug/
+Release/
+.settings/
+.mxproject
 
-# Created by https://www.toptal.com/developers/gitignore/api/eclipse
-# Edit at https://www.toptal.com/developers/gitignore?templates=eclipse
-
-### Eclipse ###
+### Eclipse https://www.toptal.com/developers/gitignore/api/eclipse ###
 .metadata
 bin/
 tmp/
