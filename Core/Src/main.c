@@ -71,6 +71,13 @@ const osThreadAttr_t defaultTask_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
   .stack_size = 128 * 4
 };
+/* Definitions for createAP */
+osThreadId_t createAPHandle;
+const osThreadAttr_t createAP_attributes = {
+  .name = "createAP",
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 128 * 4
+};
 /* USER CODE BEGIN PV */
 
 /* USER CODE END PV */
@@ -90,6 +97,7 @@ static void MX_SDIO_SD_Init(void);
 static void MX_UART10_Init(void);
 static void MX_USART6_UART_Init(void);
 void StartDefaultTask(void *argument);
+void StartTaskCreateAP(void *argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -165,6 +173,9 @@ int main(void)
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of createAP */
+  createAPHandle = osThreadNew(StartTaskCreateAP, NULL, &createAP_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -907,6 +918,24 @@ void StartDefaultTask(void *argument)
     osDelay(1);
   }
   /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartTaskCreateAP */
+/**
+* @brief Function implementing the createAP thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartTaskCreateAP */
+void StartTaskCreateAP(void *argument)
+{
+  /* USER CODE BEGIN StartTaskCreateAP */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartTaskCreateAP */
 }
 
 /**
