@@ -67,7 +67,7 @@ SRAM_HandleTypeDef hsram2;
 osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
-  .priority = (osPriority_t) osPriorityNormal,
+  .priority = (osPriority_t) osPriorityLow,
   .stack_size = 128 * 4
 };
 /* USER CODE BEGIN PV */

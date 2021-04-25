@@ -9,8 +9,6 @@
 #define AP_CHANNEL 11
 #define AP_MAX_CONNECTIONS 2
 
-static bool accessPointCreated = false;
-
-void createAP(void);
+bool createAP(void);
 
 #endif /*__ACCESS_POINT_H*/
