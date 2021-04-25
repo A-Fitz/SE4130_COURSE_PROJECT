@@ -152,6 +152,7 @@ WIFI_Status_t       WIFI_Connect(
 WIFI_Status_t       WIFI_GetIP_Address(uint8_t  *ipaddr);
 WIFI_Status_t       WIFI_GetMAC_Address(uint8_t  *mac);                             
                              
+WIFI_Status_t       WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn);
 WIFI_Status_t       WIFI_Disconnect(void);
 
 WIFI_Status_t       WIFI_Ping(uint8_t* ipaddr, uint16_t count, uint16_t interval_ms);

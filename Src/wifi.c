@@ -76,6 +76,32 @@ WIFI_Status_t WIFI_Init(void)
 }
 
 /**
+ * @brief Configure a new direct connect access point. Adapted from https://github.com/baidu/baidu-iot-samples
+ * @param ssid : pointer to the SSID string
+ * @param pass : pointer to the password string
+ * @param ecn : the type of security
+ * @param channel : the channel value
+ * @param max_conn : the maximum number of connections
+ */
+WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn)
+{
+  WIFI_Status_t ret = WIFI_STATUS_ERROR;
+  ES_WIFI_APConfig_t ApConfig;
+
+  strncpy((char*)ApConfig.SSID, ssid, ES_WIFI_MAX_SSID_NAME_SIZE);
+  strncpy((char*)ApConfig.Pass, pass, ES_WIFI_MAX_PSWD_NAME_SIZE);
+  ApConfig.Channel = channel;
+  ApConfig.MaxConnections = WIFI_MAX_CONNECTED_STATIONS;
+  ApConfig.Security = (ES_WIFI_SecurityType_t)ecn;
+
+  if(ES_WIFI_ActivateAP(&EsWifiObj, &ApConfig) == ES_WIFI_STATUS_OK)
+  {
+      ret = WIFI_STATUS_OK;
+  }
+  return ret;
+}
+
+/**
   * @brief  List a defined number of vailable access points
   * @param  APs : pointer to APs structure
   * @param  AP_MaxNbr : Max APs number to be listed

@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    es_wifi_conf_template.h
+  * @file    es_wifi_conf.h
   * @author  MCD Application Team
   * @brief    es-wifi configuration file.
   ******************************************************************************

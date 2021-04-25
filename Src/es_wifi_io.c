@@ -100,7 +100,7 @@ void SPI_WIFI_MspInit(SPI_HandleTypeDef* hspi)
   GPIO_Init.Alternate = 0;
   HAL_GPIO_Init( GPIOH, &GPIO_Init );
   
-  /* configure SPI NSS pin pin */
+  /* configure SPI NSS/SSN pin pin */
   HAL_GPIO_WritePin( GPIOG, GPIO_PIN_11, GPIO_PIN_SET ); 
   GPIO_Init.Pin       = GPIO_PIN_11;
   GPIO_Init.Mode      = GPIO_MODE_OUTPUT_PP;
@@ -267,7 +267,7 @@ int16_t SPI_WIFI_SendData( uint8_t *pdata,  uint16_t len, uint32_t timeout)
     }
   }
   
-  WIFI_ENABLE_NSS(); 
+  WIFI_ENABLE_NSS(); // hard fault?
   
   if(len & 0x1) 
   {
