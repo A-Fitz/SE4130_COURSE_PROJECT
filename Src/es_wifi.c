@@ -824,8 +824,6 @@ ES_WIFI_Status_t ES_WIFI_GetNetworkSettings(ES_WIFIObject_t *Obj)
  * @brief  Configure and activate SoftAP. Adapted from https://github.com/baidu/baidu-iot-samples
  * @param  Obj: pointer to module handle
  * @param  ApConfig : Pointer to AP config structure.
- * @param  ip : AP IP address
- * @param  mac : AP MAC address
  * @retval Operation Status.
  */
 ES_WIFI_Status_t ES_WIFI_ActivateAP(ES_WIFIObject_t *Obj, ES_WIFI_APConfig_t *ApConfig)

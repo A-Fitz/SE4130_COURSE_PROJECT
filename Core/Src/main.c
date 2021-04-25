@@ -854,7 +854,7 @@ void StartDefaultTask(void *argument)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
 
-  createAP(); //this breaks osDelay.
+  createAP();
   for(;;)
   {
   	HAL_GPIO_TogglePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin);
