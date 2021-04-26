@@ -175,8 +175,18 @@ typedef struct {
 typedef struct {
   ES_WIFI_AP_t AP[ES_WIFI_MAX_DETECTED_AP];
   uint8_t nbr;
-  
-}ES_WIFI_APs_t;
+} ES_WIFI_APs_t;
+
+typedef struct {
+	uint8_t ClientNumber;   /*!< nth client attached */
+	uint8_t ClientMAC[6];   /*!< MAC address of client */
+	int16_t ClientRSSI;     /*!< RSSI of connection with client */
+} ES_WIFI_AP_Client_t;
+
+typedef struct {
+	ES_WIFI_AP_Client_t Clients[ES_WIFI_MAX_AP_CLIENTS];
+	uint8_t count;
+} ES_WIFI_AP_Clients_t;
 
 typedef struct {
   uint8_t          SSID[ES_WIFI_MAX_SSID_NAME_SIZE + 1];
@@ -282,6 +292,7 @@ ES_WIFI_Status_t  ES_WIFI_SendData(ES_WIFIObject_t *Obj, uint8_t Socket, uint8_t
 ES_WIFI_Status_t  ES_WIFI_ReceiveData(ES_WIFIObject_t *Obj, uint8_t Socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *Receivedlen, uint32_t timeout);
 ES_WIFI_Status_t  ES_WIFI_ActivateAP(ES_WIFIObject_t *Obj, ES_WIFI_APConfig_t *ApConfig);
 ES_WIFI_APState_t ES_WIFI_WaitAPStateChange(ES_WIFIObject_t *Obj);
+ES_WIFI_Status_t  ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj, ES_WIFI_AP_Clients_t *APClients);
 
 #if (ES_WIFI_USE_FIRMWAREUPDATE == 1)
 ES_WIFI_Status_t  ES_WIFI_OTA_Upgrade(ES_WIFIObject_t *Obj, uint8_t *link);

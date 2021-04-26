@@ -101,8 +101,38 @@ WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ec
   return ret;
 }
 
+// TODO [@fitzgeralaus] need to test
 /**
-  * @brief  List a defined number of vailable access points
+ * @brief List the connected AP clients
+ * @param APClients: Pointer to array of AP clients
+ * @retval Operation success
+ */
+WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients)
+{
+	uint8_t APClientCount;
+	WIFI_Status_t ret = WIFI_STATUS_ERROR;
+	ES_WIFI_AP_Clients_t esWifiAPClients;
+
+	if(ES_WIFI_ListAPClients(&EsWifiObj, &esWifiAPClients) == ES_WIFI_STATUS_OK)
+	{
+		if(esWifiAPClients.count > 0)
+		{
+			APClients->count = esWifiAPClients.count;
+			for(APClientCount = 0; APClientCount < APClients->count; APClientCount++)
+			{
+				APClients->Clients[APClientCount].ClientNumber = esWifiAPClients.Clients[APClientCount].ClientNumber;
+				memcpy(APClients->Clients[APClientCount].ClientMAC, esWifiAPClients.Clients[APClientCount].ClientMAC, 6);
+				APClients->Clients[APClientCount].ClientRSSI = esWifiAPClients.Clients[APClientCount].ClientRSSI;
+			}
+		}
+		ret = WIFI_STATUS_OK;
+	}
+
+	return ret;
+}
+
+/**
+  * @brief  List a defined number of available access points
   * @param  APs : pointer to APs structure
   * @param  AP_MaxNbr : Max APs number to be listed
   * @retval Operation status

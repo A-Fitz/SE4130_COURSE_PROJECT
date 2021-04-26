@@ -64,6 +64,7 @@
 
 #define ES_WIFI_DATA_SIZE                           1600
 #define ES_WIFI_MAX_DETECTED_AP                     10
+#define ES_WIFI_MAX_AP_CLIENTS                      8
    
 #define ES_WIFI_TIMEOUT                             0xFFFF
                                                     

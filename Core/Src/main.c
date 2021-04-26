@@ -977,10 +977,16 @@ void StartDefaultTask(void *argument)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
 
-  createAP();
+  bool apCreated = createAP();
   for(;;)
   {
-  	HAL_GPIO_TogglePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin);
+  	// If the AP is created and client info can be retrieved, blink the pin.
+  	if(apCreated && getClients())
+  	{
+  	  HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_SET);
+  	}
+  	osDelay(500);
+  	HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_RESET);
   	osDelay(500);
   }
 

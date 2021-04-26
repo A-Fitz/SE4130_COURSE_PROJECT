@@ -9,6 +9,9 @@
 #define AP_CHANNEL 11
 #define AP_MAX_CONNECTIONS 2
 
+WIFI_AP_Clients_t *APClients;
+
 bool createAP(void);
+bool getClients(void);
 
 #endif /*__ACCESS_POINT_H*/
