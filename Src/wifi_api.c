@@ -101,6 +101,17 @@ WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ec
   return ret;
 }
 
+WIFI_Status_t WIFI_ListAPClientRSSIs(WIFI_AP_Clients_RSSIs_t *APClients)
+{
+	uint8_t APClientCount;
+	WIFI_Status_t ret = WIFI_STATUS_ERROR;
+	ES_WIFI_AP_Clients_RSSIs_t esWifiAPClients;
+
+	// TODO [@fitzgeralaus] finish, need to write es_wifi function.
+
+	return ret;
+}
+
 /**
   * @brief  List a defined number of vailable access points
   * @param  APs : pointer to APs structure

@@ -17,3 +17,8 @@ bool createAP(void)
 	  return false;
 	}
 }
+
+void getClientRSSIs(void)
+{
+	//TODO [@fitzgeralaus] finish
+}

@@ -10,5 +10,6 @@
 #define AP_MAX_CONNECTIONS 2
 
 bool createAP(void);
+void getClientRSSIs(void);
 
 #endif /*__ACCESS_POINT_H*/
