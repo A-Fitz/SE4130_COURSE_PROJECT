@@ -18,7 +18,8 @@ bool createAP(void)
 	}
 }
 
-void getClientRSSIs(void)
+//TODO [@fitzgeralaus] need to test and comment
+bool getClientRSSIs(void)
 {
-	//TODO [@fitzgeralaus] finish
+	return (WIFI_Init() ==  WIFI_STATUS_OK) && (WIFI_ListAPClients(APClients) == WIFI_STATUS_OK);
 }

@@ -111,12 +111,12 @@ typedef struct {
 	uint8_t ClientNumber;   /*!< nth client attached */
 	uint8_t ClientMAC[6];   /*!< MAC address of client */
 	int16_t ClientRSSI;     /*!< RSSI of connection with client */
-} WIFI_AP_Client_RSSI_t;
+} WIFI_AP_Client_t;
 
 typedef struct {
-	WIFI_AP_Client_RSSI_t apClients[WIFI_MAX_AP_CLIENTS];
+	WIFI_AP_Client_t Clients[WIFI_MAX_AP_CLIENTS];
 	uint8_t count;
-} WIFI_AP_Clients_RSSIs_t;
+} WIFI_AP_Clients_t;
 
 typedef struct {
   uint8_t Number;                                           /*!< Connection number */
@@ -163,7 +163,7 @@ WIFI_Status_t       WIFI_GetIP_Address(uint8_t  *ipaddr);
 WIFI_Status_t       WIFI_GetMAC_Address(uint8_t  *mac);                             
                              
 WIFI_Status_t       WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn);
-WIFI_Status_t       WIFI_ListAPClientRSSIs(WIFI_AP_Clients_RSSIs_t *APClients);
+WIFI_Status_t       WIFI_ListAPClients(WIFI_AP_Clients_t *APClients);
 WIFI_Status_t       WIFI_Disconnect(void);
 
 WIFI_Status_t       WIFI_Ping(uint8_t* ipaddr, uint16_t count, uint16_t interval_ms);

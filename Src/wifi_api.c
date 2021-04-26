@@ -101,13 +101,27 @@ WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ec
   return ret;
 }
 
-WIFI_Status_t WIFI_ListAPClientRSSIs(WIFI_AP_Clients_RSSIs_t *APClients)
+// TODO [@fitzgeralaus] need to test and comment
+WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients)
 {
 	uint8_t APClientCount;
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-	ES_WIFI_AP_Clients_RSSIs_t esWifiAPClients;
+	ES_WIFI_AP_Clients_t esWifiAPClients;
 
-	// TODO [@fitzgeralaus] finish, need to write es_wifi function.
+	if(ES_WIFI_ListAPClients(&EsWifiObj, &esWifiAPClients) == ES_WIFI_STATUS_OK)
+	{
+		if(esWifiAPClients.count > 0)
+		{
+			APClients->count = esWifiAPClients.count;
+			for(APClientCount = 0; APClientCount < APClients->count; APClientCount++)
+			{
+				APClients->Clients[APClientCount].ClientNumber = esWifiAPClients.Clients[APClientCount].ClientNumber;
+				memcpy(APClients->Clients[APClientCount].ClientMAC, esWifiAPClients.Clients[APClientCount].ClientMAC, 6);
+				APClients->Clients[APClientCount].ClientRSSI = esWifiAPClients.Clients[APClientCount].ClientRSSI;
+			}
+		}
+		ret = WIFI_STATUS_OK;
+	}
 
 	return ret;
 }

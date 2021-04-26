@@ -301,6 +301,38 @@ static void AT_ParseAP(char *pdata, ES_WIFI_APs_t *APs)
 	}
 }
 
+//TODO [@fitzgeralaus] need to test and comment
+static void AT_ParseAPClients(char *pdata, ES_WIFI_AP_Clients_t *APClients)
+{
+	uint8_t num = 0;
+	char *ptr;
+	APClients->count = 0;
+
+	ptr = strtok(pdata + 2, ",");
+
+	while ((ptr != NULL) && (APClients->count < ES_WIFI_MAX_AP_CLIENTS)) {
+		switch (num++) {
+		case 0:
+			APClients->Clients[APClients->count].ClientNumber = ParseNumber(ptr, NULL);
+			break;
+
+		case 1:
+			ParseMAC(ptr, APClients->Clients[APClients->count].ClientMAC);
+			break;
+
+		case 2:
+			APClients->Clients[APClients->count].ClientRSSI = ParseNumber(ptr, NULL);
+			APClients->count++;
+			num = 1;
+			break;
+
+		default:
+			break;
+		}
+		ptr = strtok(NULL, ",");
+	}
+}
+
 #if (ES_WIFI_USE_UART == 1)
 /**
  * @brief  Parses UART configuration.
@@ -928,6 +960,20 @@ ES_WIFI_APState_t ES_WIFI_WaitAPStateChange(ES_WIFIObject_t *Obj)
   } while (1);
 #endif
   return ret;
+}
+
+//TODO [@fitzgeralaus] need to test and comment
+ES_WIFI_Status_t ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj, ES_WIFI_AP_Clients_t *APClients)
+{
+
+	ES_WIFI_Status_t ret;
+
+	ret = AT_ExecuteCommand(Obj,(uint8_t*)"AR\r", Obj->CmdData);
+	if(ret == ES_WIFI_STATUS_OK)
+	{
+		AT_ParseAPClients((char *)Obj->CmdData, APClients);
+	}
+	return ret;
 }
 
 /**
