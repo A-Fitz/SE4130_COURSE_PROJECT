@@ -301,7 +301,13 @@ static void AT_ParseAP(char *pdata, ES_WIFI_APs_t *APs)
 	}
 }
 
-//TODO [@fitzgeralaus] need to test and comment
+//TODO [@fitzgeralaus] need to test
+/**
+ * @brief Parses response to get AP client data.
+ * @param pdata: The response data.
+ * @param APClients: Where to parse data into.
+ * @retval None
+ */
 static void AT_ParseAPClients(char *pdata, ES_WIFI_AP_Clients_t *APClients)
 {
 	uint8_t num = 0;
@@ -962,7 +968,13 @@ ES_WIFI_APState_t ES_WIFI_WaitAPStateChange(ES_WIFIObject_t *Obj)
   return ret;
 }
 
-//TODO [@fitzgeralaus] need to test and comment
+//TODO [@fitzgeralaus] need to test
+/**
+ * @brief Get information on the AP connected clients
+ * @param Obj: Pointer to the module handle
+ * @param APClients: Pointer to the AP clients array
+ * @retval Operation success
+ */
 ES_WIFI_Status_t ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj, ES_WIFI_AP_Clients_t *APClients)
 {
 

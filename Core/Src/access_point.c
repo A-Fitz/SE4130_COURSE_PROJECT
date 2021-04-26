@@ -18,8 +18,12 @@ bool createAP(void)
 	}
 }
 
-//TODO [@fitzgeralaus] need to test and comment
+//TODO [@fitzgeralaus] need to test
+/**
+ * @brief Finds all clients connected to the AP, stores in APClients variable.
+ * @retval Success of operation.
+ */
 bool getClientRSSIs(void)
 {
-	return (WIFI_Init() ==  WIFI_STATUS_OK) && (WIFI_ListAPClients(APClients) == WIFI_STATUS_OK);
+	return (WIFI_ListAPClients(APClients) == WIFI_STATUS_OK);
 }
