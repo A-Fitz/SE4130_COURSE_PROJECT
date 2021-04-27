@@ -298,7 +298,6 @@ static void AT_ParseAP(char *pdata, ES_WIFI_APs_t *APs)
 	}
 }
 
-//TODO [@fitzgeralaus] need to test
 /**
  * @brief Parses response to get AP client data.
  * @param pdata: The response data.
@@ -899,7 +898,6 @@ ES_WIFI_APState_t ES_WIFI_WaitAPStateChange(ES_WIFIObject_t *Obj)
 	return ret;
 }
 
-//TODO [@fitzgeralaus] need to test
 /**
  * @brief Get information on the AP connected clients
  * @param Obj: Pointer to the module handle
