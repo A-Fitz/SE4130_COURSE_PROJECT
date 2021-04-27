@@ -50,6 +50,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
+
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
 
@@ -114,8 +116,6 @@ void Error_Handler(void);
 #define ARD_A2_GPIO_Port GPIOA
 #define CODEC_MCK_Pin GPIO_PIN_3
 #define CODEC_MCK_GPIO_Port GPIOA
-#define ARD_D8_Pin GPIO_PIN_4
-#define ARD_D8_GPIO_Port GPIOA
 #define ARD_A3_Pin GPIO_PIN_5
 #define ARD_A3_GPIO_Port GPIOA
 #define SD_CMD_Pin GPIO_PIN_6
@@ -126,8 +126,6 @@ void Error_Handler(void);
 #define ARD_A5_GPIO_Port GPIOC
 #define LED2_GREEN_Pin GPIO_PIN_5
 #define LED2_GREEN_GPIO_Port GPIOC
-#define ARD_D6_Pin GPIO_PIN_0
-#define ARD_D6_GPIO_Port GPIOB
 #define ARD_A4_Pin GPIO_PIN_1
 #define ARD_A4_GPIO_Port GPIOB
 #define QSPI_CLK_Pin GPIO_PIN_2
@@ -260,18 +258,12 @@ void Error_Handler(void);
 #define WIFI_SPI_CSN_GPIO_Port GPIOG
 #define WIFI_DRDY_Pin GPIO_PIN_12
 #define WIFI_DRDY_GPIO_Port GPIOG
-#define ARD_D2_Pin GPIO_PIN_13
-#define ARD_D2_GPIO_Port GPIOG
 #define VCP_TX_Pin GPIO_PIN_14
 #define VCP_TX_GPIO_Port GPIOG
 #define CODEC_INT_Pin GPIO_PIN_15
 #define CODEC_INT_GPIO_Port GPIOG
-#define ARD_D4_Pin GPIO_PIN_6
-#define ARD_D4_GPIO_Port GPIOB
 #define DFSDM2_DATIN7_Pin GPIO_PIN_7
 #define DFSDM2_DATIN7_GPIO_Port GPIOB
-#define ARD_D9_Pin GPIO_PIN_8
-#define ARD_D9_GPIO_Port GPIOB
 #define CODEC_WS_Pin GPIO_PIN_9
 #define CODEC_WS_GPIO_Port GPIOB
 #define PSRAM_NBL0_Pin GPIO_PIN_0
