@@ -101,7 +101,40 @@ WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ec
   return ret;
 }
 
-// TODO [@fitzgeralaus] need to test
+/**
+ * @brief  Handle the background events of the wifi module. Adapted from https://github.com/baidu/baidu-iot-samples
+ * @retval None
+ */
+WIFI_Status_t WIFI_HandleAPEvents(WIFI_APSettings_t *setting)
+{
+	WIFI_Status_t ret = WIFI_STATUS_OK;
+	ES_WIFI_APState_t state = ES_WIFI_WaitAPStateChange(&EsWifiObj);
+
+	switch (state)
+	{
+	case ES_WIFI_AP_ASSIGNED:
+		memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
+		memcpy(setting->MAC_Addr, EsWifiObj.APSettings.MAC_Addr, 6);
+		ret = WIFI_STATUS_ASSIGNED;
+		break;
+
+	case ES_WIFI_AP_JOINED:
+		strncpy((char *)setting->SSID, (char *)EsWifiObj.APSettings.SSID, WIFI_MAX_SSID_NAME);
+		memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
+		ret = WIFI_STATUS_JOINED;
+		break;
+
+	case ES_WIFI_AP_ERROR:
+		ret = WIFI_STATUS_ERROR;
+		break;
+
+	default:
+		break;
+	}
+
+	return ret;
+}
+
 /**
  * @brief List the connected AP clients
  * @param APClients: Pointer to array of AP clients
@@ -118,6 +151,7 @@ WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients)
 		if(esWifiAPClients.count > 0)
 		{
 			APClients->count = esWifiAPClients.count;
+			memcpy(APClients->count, esWifiAPClients.count, sizeof(esWifiAPClients.count));
 			for(APClientCount = 0; APClientCount < APClients->count; APClientCount++)
 			{
 				APClients->Clients[APClientCount].ClientNumber = esWifiAPClients.Clients[APClientCount].ClientNumber;
@@ -216,6 +250,22 @@ WIFI_Status_t WIFI_GetIP_Address (uint8_t  *ipaddr)
   if(EsWifiObj.NetSettings.IsConnected)
   {
     memcpy(ipaddr, EsWifiObj.NetSettings.IP_Addr, 4);
+    ret = WIFI_STATUS_OK;
+  }
+  return ret;
+}
+
+/**
+  * @brief  This function retrieves the WiFi interface's Gateway address.
+  * @retval Operation Status.
+  */
+WIFI_Status_t WIFI_GetGateway_Address (uint8_t  *Gateway_addr)
+{
+  WIFI_Status_t ret = WIFI_STATUS_ERROR;
+
+  if(EsWifiObj.NetSettings.IsConnected)
+  {
+    memcpy(Gateway_addr, EsWifiObj.NetSettings.Gateway_Addr, 4);
     ret = WIFI_STATUS_OK;
   }
   return ret;

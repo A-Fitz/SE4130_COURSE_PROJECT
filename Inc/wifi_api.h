@@ -108,17 +108,6 @@ typedef struct {
 } WIFI_APs_t;
 
 typedef struct {
-	uint8_t ClientNumber;   /*!< nth client attached */
-	uint8_t ClientMAC[6];   /*!< MAC address of client */
-	int16_t ClientRSSI;     /*!< RSSI of connection with client */
-} WIFI_AP_Client_t;
-
-typedef struct {
-	WIFI_AP_Client_t Clients[WIFI_MAX_AP_CLIENTS];
-	uint8_t count;
-} WIFI_AP_Clients_t;
-
-typedef struct {
   uint8_t Number;                                           /*!< Connection number */
   uint16_t RemotePort;                                      /*!< Remote PORT number */
   uint16_t LocalPort;   
@@ -130,6 +119,16 @@ typedef struct {
   uint8_t Client;                                           /*!< Set to 1 if connection was made as client */
 } WIFI_Socket_t;
                                            
+typedef struct {
+	uint8_t ClientNumber;   /*!< nth client attached */
+	uint8_t ClientMAC[6];   /*!< MAC address of client */
+	int16_t ClientRSSI;     /*!< RSSI of connection with client */
+} WIFI_AP_Client_t;
+
+typedef struct {
+	WIFI_AP_Client_t Clients[ES_WIFI_MAX_AP_CLIENTS];
+	uint8_t count;
+} WIFI_AP_Clients_t;
 
 typedef struct {
   uint8_t          SSID[WIFI_MAX_SSID_NAME + 1]; 
@@ -160,9 +159,11 @@ WIFI_Status_t       WIFI_Connect(
                              const char* Password,
                              WIFI_Ecn_t ecn);
 WIFI_Status_t       WIFI_GetIP_Address(uint8_t  *ipaddr);
+WIFI_Status_t       WIFI_GetGateway_Address (uint8_t  *Gateway_addr);
 WIFI_Status_t       WIFI_GetMAC_Address(uint8_t  *mac);                             
                              
 WIFI_Status_t       WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn);
+WIFI_Status_t       WIFI_HandleAPEvents(WIFI_APSettings_t *setting);
 WIFI_Status_t       WIFI_ListAPClients(WIFI_AP_Clients_t *APClients);
 WIFI_Status_t       WIFI_Disconnect(void);
 

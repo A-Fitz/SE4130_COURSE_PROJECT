@@ -36,7 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define MY_TICK_INT_PRIORITY 15
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -68,10 +68,10 @@ osThreadId_t defaultTaskHandle;
 const osThreadAttr_t defaultTask_attributes = {
   .name = "defaultTask",
   .priority = (osPriority_t) osPriorityLow,
-  .stack_size = 128 * 4
+  .stack_size = 2048 * 4
 };
 /* USER CODE BEGIN PV */
-
+bool apCreated = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,7 +104,7 @@ void StartDefaultTask(void *argument);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	HAL_NVIC_SetPriorityGrouping( NVIC_PRIORITYGROUP_4 );
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -113,7 +113,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  //uwTickPrio = MY_TICK_INT_PRIORITY;
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -135,7 +135,7 @@ int main(void)
   MX_USART6_UART_Init();
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
-  //RetargetInit(&huart6); // setup printf over UART6
+
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -854,17 +854,37 @@ void StartDefaultTask(void *argument)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
 
-  bool apCreated = createAP();
+  apCreated = createAP();
+  //apCreated = waitForClientConnection();
+  apCreated = getClients();
   for(;;)
   {
-  	// If the AP is created and client info can be retrieved, blink the pin.
-  	if(apCreated && getClients())
+  	if(apCreated)
   	{
-  	  HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_SET);
+  		HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_SET);
+
+  		uint8_t *transmitStr[30] = {0};
+  		for(uint8_t count = 0; count < APClients.count; count++)
+  		{
+  			sprintf((char*)transmitStr,"%d[RSSI: %d, MAC: %X:%X:%X:%X:%X:%X]\n",
+  					APClients.Clients[count].ClientNumber,
+						APClients.Clients[count].ClientRSSI,
+						APClients.Clients[count].ClientMAC[0],
+						APClients.Clients[count].ClientMAC[1],
+						APClients.Clients[count].ClientMAC[2],
+						APClients.Clients[count].ClientMAC[3],
+						APClients.Clients[count].ClientMAC[4],
+						APClients.Clients[count].ClientMAC[5]);
+
+  			HAL_UART_Transmit(&huart6,(uint8_t*)transmitStr,strlen((char*)transmitStr),HAL_MAX_DELAY);
+  		}
   	}
-  	osDelay(500);
+
+  	osDelay(1000);
   	HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_RESET);
-  	osDelay(500);
+  	osDelay(1000);
+
+  	apCreated = getClients();
   }
 
   /* USER CODE END 5 */
@@ -872,7 +892,7 @@ void StartDefaultTask(void *argument)
 
 /**
   * @brief  Period elapsed callback in non blocking mode
-  * @note   This function is called  when TIM7 interrupt took place, inside
+  * @note   This function is called  when TIM6 interrupt took place, inside
   * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
   * a global variable "uwTick" used as application time base.
   * @param  htim : TIM handle
@@ -883,7 +903,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM7) {
+  if (htim->Instance == TIM6) {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */

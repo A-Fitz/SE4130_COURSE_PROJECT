@@ -46,10 +46,6 @@
 #ifndef __ES_WIFI_CONF_H
 #define __ES_WIFI_CONF_H
 
-#ifdef __cplusplus
- extern "C" {
-#endif  
-
 /* Exported types ------------------------------------------------------------*/
 
 /* Exported constants --------------------------------------------------------*/
@@ -69,18 +65,10 @@
 #define ES_WIFI_TIMEOUT                             0xFFFF
                                                     
 #define ES_WIFI_USE_PING                            1
-#define ES_WIFI_USE_AWS                             0
 #define ES_WIFI_USE_FIRMWAREUPDATE                  0
 #define ES_WIFI_USE_WPS                             0
-                                                    
-#define ES_WIFI_USE_SPI                             0
-#define ES_WIFI_USE_UART                            (!ES_WIFI_USE_SPI)   
    
 
-
-#ifdef __cplusplus
-}
-#endif
 #endif /* __ES_WIFI_CONF_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

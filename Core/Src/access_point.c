@@ -10,20 +10,23 @@ bool createAP(void)
 		if(WIFI_ConfigureAP(AP_SSID, AP_PASSWORD, WIFI_ECN_WPA2_PSK, AP_CHANNEL, AP_MAX_CONNECTIONS) == WIFI_STATUS_OK)
 		{
 			return true;
-		} else {
-		  return false;
 		}
-	} else {
-	  return false;
 	}
+
+	return false;
 }
 
-//TODO [@fitzgeralaus] need to test
+//TODO [@fitzgeralaus] this is broken at the moment
+bool waitForClientConnection(void)
+{
+	return WIFI_HandleAPEvents(&APSettings) == WIFI_STATUS_ASSIGNED;
+}
+
 /**
  * @brief Finds all clients connected to the AP, stores in APClients variable.
  * @retval Operation success
  */
 bool getClients(void)
 {
-	return (WIFI_ListAPClients(APClients) == WIFI_STATUS_OK);
+	return (WIFI_ListAPClients(&APClients) == WIFI_STATUS_OK);
 }

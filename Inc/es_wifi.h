@@ -112,7 +112,6 @@ typedef enum {
   ES_WIFI_AP_ERROR    = 0xFF,    
 } ES_WIFI_APState_t;
 
-
 typedef struct
 {
   uint32_t Port;
@@ -123,7 +122,6 @@ typedef struct
   uint32_t Mode;   
                         
 }ES_WIFI_UARTConfig_t;
-
 
 typedef struct
 {
