@@ -171,7 +171,7 @@ WIFI_Status_t       WIFI_Ping(uint8_t* ipaddr, uint16_t count, uint16_t interval
 WIFI_Status_t       WIFI_OpenClientConnection(uint32_t socket, WIFI_Protocol_t type, const char* name, char* location, uint16_t port, uint16_t local_port);
 WIFI_Status_t       WIFI_CloseClientConnection(void);
 
-WIFI_Status_t       WIFI_StartServer(uint32_t socket, WIFI_Protocol_t type, const char* name, uint16_t port);
+WIFI_Status_t       WIFI_StartServer(uint32_t socket, WIFI_Protocol_t type, uint16_t port);
 WIFI_Status_t       WIFI_StopServer(uint32_t socket);
 
 WIFI_Status_t       WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *SentDatalen);

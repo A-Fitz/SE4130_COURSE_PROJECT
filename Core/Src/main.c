@@ -81,7 +81,7 @@ const osThreadAttr_t motorControl_attributes = {
   .stack_size = 128 * 4
 };
 /* USER CODE BEGIN PV */
-bool apCreated = false;
+bool apWorking = false;
 bool forward = false;
 bool reverse = false;
 bool right = false;
@@ -977,38 +977,35 @@ void StartDefaultTask(void *argument)
   /* init code for USB_HOST */
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
+  uint8_t *transmitStr[30] = {0};
 
-  apCreated = createAP();
-  //apCreated = waitForClientConnection();
-  apCreated = getClients();
+  apWorking = createAP();
+  //apWorking = waitForClientConnection();
+  //apWorking = getClients();
+  apWorking = startWebServer();
+  apWorking = receiveData();
   for(;;)
   {
-  	if(apCreated)
+  	if(apWorking)
   	{
   		HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_SET);
+  		osDelay(250);
+  		HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_RESET);
 
-  		uint8_t *transmitStr[30] = {0};
-  		for(uint8_t count = 0; count < APClients.count; count++)
+  		if(respLen > 0)
   		{
-  			sprintf((char*)transmitStr,"%d[RSSI: %d, MAC: %X:%X:%X:%X:%X:%X]\n",
-  					APClients.Clients[count].ClientNumber,
-						APClients.Clients[count].ClientRSSI,
-						APClients.Clients[count].ClientMAC[0],
-						APClients.Clients[count].ClientMAC[1],
-						APClients.Clients[count].ClientMAC[2],
-						APClients.Clients[count].ClientMAC[3],
-						APClients.Clients[count].ClientMAC[4],
-						APClients.Clients[count].ClientMAC[5]);
-
-  			HAL_UART_Transmit(&huart6,(uint8_t*)transmitStr,strlen((char*)transmitStr),HAL_MAX_DELAY);
+  			HAL_UART_Transmit(&huart6,(uint8_t*)resp,respLen,HAL_MAX_DELAY);
   		}
+
+  	} else {
+  		HAL_GPIO_WritePin(LED1_RED_GPIO_Port, LED1_RED_Pin, GPIO_PIN_SET);
+  		osDelay(250);
+  		HAL_GPIO_WritePin(LED1_RED_GPIO_Port, LED1_RED_Pin, GPIO_PIN_RESET);
   	}
 
-  	osDelay(1000);
-  	HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_RESET);
-  	osDelay(1000);
 
-  	apCreated = getClients();
+  	apWorking = receiveData();
+  	osDelay(2000);
   }
 
   /* USER CODE END 5 */
@@ -1160,7 +1157,7 @@ void StartMotorControl(void *argument)
 		}
 
 */
-		osDelay(1);
+		osDelay(500);
 	}
 	/* USER CODE END StartMotorControl */
 }

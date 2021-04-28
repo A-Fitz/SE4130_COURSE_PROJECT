@@ -358,7 +358,7 @@ WIFI_Status_t WIFI_CloseClientConnection(void)
   * @param  port : Remote port
   * @retval Operation status
   */
-WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t protocol, const char* name, uint16_t port)
+WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t protocol, uint16_t port)
 {
   WIFI_Status_t ret = WIFI_STATUS_ERROR;
   ES_WIFI_Conn_t conn;

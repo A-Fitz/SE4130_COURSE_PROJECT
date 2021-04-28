@@ -30,3 +30,22 @@ bool getClients(void)
 {
 	return (WIFI_ListAPClients(&APClients) == WIFI_STATUS_OK);
 }
+
+bool startWebServer(void)
+{
+	APSocket = 0;
+
+	if(WIFI_StartServer(APSocket, WIFI_TCP_PROTOCOL, PORT) == WIFI_STATUS_OK)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool receiveData(void)
+{
+	if(WIFI_ReceiveData(APSocket, resp, 2, &respLen) == WIFI_STATUS_OK)
+	{
+		return true;
+	}
+}
