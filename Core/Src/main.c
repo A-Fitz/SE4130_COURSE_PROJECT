@@ -979,7 +979,16 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN 5 */
 
   apWorking = createAP();
+  while(APClients.count == 0)
+  {
+  	getClients();
+  }
+
+  osDelay(500);
   apWorking = startTCPServer();
+  osDelay(500); // Need time to finish setting up TCP server.
+  apWorking = waitForTCPConnection();
+  osDelay(500); // Need time to finish setting up TCP connection.
 
   for(;;)
   {

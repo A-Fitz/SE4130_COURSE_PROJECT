@@ -854,48 +854,50 @@ ES_WIFI_Status_t ES_WIFI_ActivateAP(ES_WIFIObject_t *Obj, ES_WIFI_APConfig_t *Ap
 }
 
 /**
- * @brief  Get AP notification.
- * @param  Obj: pointer to module handle
- * @param  ip : Assigned ip address.
- * @param  ip : joind device mac address.
- * @retval AP State.
- */
+  * @brief  Get AP notification.
+  * @param  Obj: pointer to module handle
+  * @param  ip : Assigned ip address.
+  * @param  ip : joind device mac address.
+  * @retval AP State.
+  */
 ES_WIFI_APState_t ES_WIFI_WaitAPStateChange(ES_WIFIObject_t *Obj)
 {
-	ES_WIFI_APState_t ret = ES_WIFI_AP_NONE;
-	char *ptr;
-	do
-	{
-		sprintf((char*)Obj->CmdData,"MR\r");
-		if(AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData) != ES_WIFI_STATUS_OK)
-		{
-			return ES_WIFI_AP_ERROR;
-		}
-		else  if(strstr((char *)Obj->CmdData, "[AP DHCP]"))
-		{
-			ptr = strtok((char *)Obj->CmdData + 2, " ");
-			ptr = strtok(NULL, " ");
-			ptr = strtok(NULL, " ");
-			ptr = strtok(NULL, " ");
-			ParseMAC((char *)ptr, Obj->APSettings.MAC_Addr);
-			ptr = strtok(NULL, " ");
-			ptr = strtok(NULL, "\r");
-			ParseIP((char *)ptr, Obj->APSettings.IP_Addr);
-			ret = ES_WIFI_AP_ASSIGNED;
-			break;
-		}
-		else if(strstr((char *)Obj->CmdData, "[JOIN   ]"))
-		{
-			ptr = strtok((char *)Obj->CmdData + 12, ",");
-			strncpy((char *)Obj->APSettings.SSID, ptr, ES_WIFI_MAX_SSID_NAME_SIZE  );
-			ptr = strtok(NULL, ",");
-			ParseIP((char *)ptr, Obj->APSettings.IP_Addr);
-			ret =  ES_WIFI_AP_JOINED;
-			break;
-		}
-		Obj->fops.IO_Delay(1000);
-	} while (1);
-	return ret;
+	/* THIS IS BROKEN. Instead, I modified ES_WIFI_WaitServerConnection to notice when a client is assigned. */
+
+  ES_WIFI_APState_t ret = ES_WIFI_AP_NONE;
+  char *ptr;
+    do
+    {
+      sprintf((char*)Obj->CmdData,"MR\r");
+      if(AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData) != ES_WIFI_STATUS_OK)
+      {
+        return ES_WIFI_AP_ERROR;
+      }
+    else  if(strstr((char *)Obj->CmdData, "[AP DHCP]"))
+    {
+      ptr = strtok((char *)Obj->CmdData + 2, " ");
+      ptr = strtok(NULL, " ");
+      ptr = strtok(NULL, " ");
+      ptr = strtok(NULL, " ");
+      ParseMAC((char *)ptr, Obj->APSettings.MAC_Addr);
+      ptr = strtok(NULL, " ");
+      ptr = strtok(NULL, "\r");
+      ParseIP((char *)ptr, Obj->APSettings.IP_Addr);
+      ret = ES_WIFI_AP_ASSIGNED;
+      break;
+    }
+    else  if(strstr((char *)Obj->CmdData, "[JOIN   ]"))
+    {
+      ptr = strtok((char *)Obj->CmdData + 12, ",");
+      strncpy((char *)Obj->APSettings.SSID, ptr, ES_WIFI_MAX_SSID_NAME_SIZE  );
+      ptr = strtok(NULL, ",");
+      ParseIP((char *)ptr, Obj->APSettings.IP_Addr);
+      ret =  ES_WIFI_AP_JOINED;
+      break;
+    }
+    Obj->fops.IO_Delay(100);
+  } while (1);
+  return ret;
 }
 
 /**
@@ -1207,6 +1209,89 @@ ES_WIFI_Status_t ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj, ES_WIFI_Con
       }
   }
   return ret;
+}
+
+/**
+ * @brief  Wait for a client connection to the Server.
+ * @param  Obj: pointer to module handle
+ * @param  conn: pointer to the connection structure
+ * @retval Operation Status.
+ */
+ES_WIFI_Status_t  ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj,uint32_t timeout,ES_WIFI_Conn_t *conn)
+{
+	ES_WIFI_Status_t ret = ES_WIFI_STATUS_OK;
+	bool accepted = false;
+	uint32_t      t;
+	uint32_t      tlast;
+	uint32_t      tstart;
+	char          *ptr;
+
+	tstart=HAL_GetTick();
+	tlast=tstart+timeout;
+	if (tlast < tstart )
+	{
+		tstart=0;
+	}
+
+	do
+	{
+		// mandatory to flush MR async messages
+		memset(Obj->CmdData,0,sizeof(Obj->CmdData));
+		sprintf((char*)Obj->CmdData,"MR\r");
+		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+		if(ret == ES_WIFI_STATUS_OK)
+		{
+			if((strstr((char *)Obj->CmdData, "[SOMA]")) && (strstr((char *)Obj->CmdData, "[EOMA]")))
+			{
+				if(strstr((char *)Obj->CmdData, "Accepted"))
+				{
+					accepted=true;// flushing out the MR messages
+				} else if (strstr((char *)Obj->CmdData, "[AP DHCP]"))
+				{
+					// do nothing for assigned IP, wait for TCP connection
+				}
+				else if(!strstr((char *)Obj->CmdData,"[SOMA][EOMA]"))
+				{
+					return ES_WIFI_STATUS_ERROR;
+				}
+			}
+		}
+		else
+		{
+			return ES_WIFI_STATUS_ERROR;
+		}
+
+		if (accepted)
+		{
+			memset(Obj->CmdData,0,sizeof(Obj->CmdData));
+			sprintf((char*)Obj->CmdData,"P?\r");
+			ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+			if(ret == ES_WIFI_STATUS_OK)
+			{
+				if((strncmp((char *)Obj->CmdData, "\r\n0,0.0.0.0,",12)!=0))
+				{
+					ptr = strtok((char *)Obj->CmdData + 2, ",");
+					ptr = strtok(0, ","); //port
+					ParseIP((char *)ptr, conn->RemoteIP);
+					ptr = strtok(0, ","); //port
+					conn->LocalPort=ParseNumber(ptr,0);
+					ptr = strtok(0, ","); //ip
+					ptr = strtok(0, ","); //remote port
+					conn->RemotePort=ParseNumber(ptr,0);
+					return ES_WIFI_STATUS_OK;
+				}
+			}
+			else
+			{
+				return ES_WIFI_STATUS_ERROR;
+			}
+		}
+
+		Obj->fops.IO_Delay(100);
+		t = HAL_GetTick();
+	}
+	while ((timeout==0) ||((t < tlast) || (t < tstart)));
+	return ES_WIFI_STATUS_TIMEOUT;
 }
 
 /**

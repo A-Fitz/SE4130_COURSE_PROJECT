@@ -54,6 +54,7 @@
 #include "stdint.h"
 #include "string.h"
 #include "stdio.h"
+#include "stdbool.h"
 #include "es_wifi_conf.h"
 
 /* Exported Constants --------------------------------------------------------*/
@@ -201,19 +202,6 @@ typedef struct {
   uint8_t          DNS1[4];   
   uint8_t          DNS2[4]; 
 } ES_WIFI_Network_t;
-
-#if (ES_WIFI_USE_AWS == 1)
-typedef struct {
-  ES_WIFI_ConnType_t Type;     
-  uint8_t            Number;             
-  uint16_t           RemotePort;  
-  uint8_t            RemoteIP[4];       
-  uint8_t            *PublishTopic;             
-  uint8_t            *SubscribeTopic;
-  uint8_t            *ClientID;  
-  uint8_t            MQTTMode;   
-} ES_WIFI_AWS_Conn_t;
-#endif
   
 typedef struct {
   ES_WIFI_ConnType_t Type;     
@@ -279,10 +267,9 @@ ES_WIFI_Status_t  ES_WIFI_Ping(ES_WIFIObject_t *Obj, uint8_t *address, uint16_t 
 ES_WIFI_Status_t  ES_WIFI_DNS_LookUp(ES_WIFIObject_t *Obj, const char *url, uint8_t *ipaddress);
 ES_WIFI_Status_t  ES_WIFI_StartClientConnection(ES_WIFIObject_t *Obj, ES_WIFI_Conn_t *conn);
 ES_WIFI_Status_t  ES_WIFI_StopClientConnection(ES_WIFIObject_t *Obj, ES_WIFI_Conn_t *conn);
-#if (ES_WIFI_USE_AWS == 1)
-ES_WIFI_Status_t  ES_WIFI_StartAWSClientConnection(ES_WIFIObject_t *Obj, ES_WIFI_AWS_Conn_t *conn);
-#endif
+
 ES_WIFI_Status_t  ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj, ES_WIFI_Conn_t *conn);
+ES_WIFI_Status_t  ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj,uint32_t timeout,ES_WIFI_Conn_t *conn);
 ES_WIFI_Status_t  ES_WIFI_StopServerSingleConn(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t  ES_WIFI_StartServerMultiConn(ES_WIFIObject_t *Obj, ES_WIFI_Conn_t *conn);
 ES_WIFI_Status_t  ES_WIFI_StopServerMultiConn(ES_WIFIObject_t *Obj);
@@ -294,11 +281,6 @@ ES_WIFI_Status_t  ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj, ES_WIFI_AP_Clients
 
 #if (ES_WIFI_USE_FIRMWAREUPDATE == 1)
 ES_WIFI_Status_t  ES_WIFI_OTA_Upgrade(ES_WIFIObject_t *Obj, uint8_t *link);
-#endif
-
-#if (ES_WIFI_USE_UART == 1)
-ES_WIFI_Status_t  ES_WIFI_SetUARTBaudRate(ES_WIFIObject_t *Obj, uint16_t BaudRate);
-ES_WIFI_Status_t  ES_WIFI_GetUARTConfig(ES_WIFIObject_t *Obj, ES_WIFI_UARTConfig_t *pconf);
 #endif
 
 ES_WIFI_Status_t  ES_WIFI_GetSystemConfig(ES_WIFIObject_t *Obj, ES_WIFI_SystemConfig_t *pconf);

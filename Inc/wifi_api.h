@@ -89,7 +89,8 @@ typedef enum {
   WIFI_STATUS_ERROR          = 1,
   WIFI_STATUS_NOT_SUPPORTED  = 2,
   WIFI_STATUS_JOINED         = 3,                                    
-  WIFI_STATUS_ASSIGNED       = 4,  
+  WIFI_STATUS_ASSIGNED       = 4,
+	WIFI_STATUS_TIMEOUT        = 5,
 }WIFI_Status_t;
 
 typedef struct {
@@ -172,6 +173,7 @@ WIFI_Status_t       WIFI_OpenClientConnection(uint32_t socket, WIFI_Protocol_t t
 WIFI_Status_t       WIFI_CloseClientConnection(void);
 
 WIFI_Status_t       WIFI_StartServer(uint32_t socket, WIFI_Protocol_t type, uint16_t port);
+WIFI_Status_t       WIFI_WaitServerConnection(int socket,uint32_t Timeout,uint8_t *RemoteIp,uint16_t *RemotePort);
 WIFI_Status_t       WIFI_StopServer(uint32_t socket);
 
 WIFI_Status_t       WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *SentDatalen);

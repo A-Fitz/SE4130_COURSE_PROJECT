@@ -102,37 +102,39 @@ WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ec
 }
 
 /**
- * @brief  Handle the background events of the wifi module. Adapted from https://github.com/baidu/baidu-iot-samples
- * @retval None
- */
+  * @brief  Handle the background events of the wifi module
+  * @retval None
+*/
 WIFI_Status_t WIFI_HandleAPEvents(WIFI_APSettings_t *setting)
 {
-	WIFI_Status_t ret = WIFI_STATUS_OK;
-	ES_WIFI_APState_t state = ES_WIFI_WaitAPStateChange(&EsWifiObj);
+  WIFI_Status_t ret = WIFI_STATUS_OK;
+  ES_WIFI_APState_t State;
 
-	switch (state)
-	{
-	case ES_WIFI_AP_ASSIGNED:
-		memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
-		memcpy(setting->MAC_Addr, EsWifiObj.APSettings.MAC_Addr, 6);
-		ret = WIFI_STATUS_ASSIGNED;
-		break;
+  State= ES_WIFI_WaitAPStateChange(&EsWifiObj);
 
-	case ES_WIFI_AP_JOINED:
-		strncpy((char *)setting->SSID, (char *)EsWifiObj.APSettings.SSID, WIFI_MAX_SSID_NAME);
-		memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
-		ret = WIFI_STATUS_JOINED;
-		break;
+  switch (State)
+  {
+  case ES_WIFI_AP_ASSIGNED:
+    memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
+    memcpy(setting->MAC_Addr, EsWifiObj.APSettings.MAC_Addr, 6);
+    ret = WIFI_STATUS_ASSIGNED;
+    break;
 
-	case ES_WIFI_AP_ERROR:
-		ret = WIFI_STATUS_ERROR;
-		break;
+  case ES_WIFI_AP_JOINED:
+    strncpy((char *)setting->SSID, (char *)EsWifiObj.APSettings.SSID, WIFI_MAX_SSID_NAME);
+    memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
+    ret = WIFI_STATUS_JOINED;
+    break;
 
-	default:
-		break;
-	}
+  case ES_WIFI_AP_ERROR:
+    ret = WIFI_STATUS_ERROR;
+    break;
 
-	return ret;
+  default:
+    break;
+  }
+
+  return ret;
 }
 
 /**
@@ -370,6 +372,43 @@ WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t protocol, uint16
     ret = WIFI_STATUS_OK;
   }
   return ret;
+}
+
+/**
+  * @brief  Wait for a client connection to the server
+  * @param  socket : socket
+  * @retval Operation status
+  */
+WIFI_Status_t WIFI_WaitServerConnection(int socket,uint32_t Timeout,uint8_t *RemoteIp,uint16_t *RemotePort)
+{
+  ES_WIFI_Conn_t conn;
+  ES_WIFI_Status_t ret;
+
+  conn.Number = socket;
+
+  ret = ES_WIFI_WaitServerConnection(&EsWifiObj,Timeout,&conn);
+
+  if (ES_WIFI_STATUS_OK == ret)
+  {
+    if (RemotePort) *RemotePort=conn.RemotePort;
+    if (RemoteIp)
+    {
+      memcpy(RemoteIp,conn.RemoteIP,sizeof(conn.RemoteIP));
+    }
+    return  WIFI_STATUS_OK;
+  }
+
+  if (ES_WIFI_STATUS_TIMEOUT ==ret)
+  {
+    if (RemotePort) *RemotePort=0;
+    if (RemoteIp)
+    {
+      memset(RemoteIp,0,sizeof(conn.RemoteIP));
+    }
+    return  WIFI_STATUS_TIMEOUT;
+  }
+
+  return WIFI_STATUS_ERROR;
 }
 
 /**
