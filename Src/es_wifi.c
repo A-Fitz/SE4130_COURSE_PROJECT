@@ -166,7 +166,7 @@ static void ParseMAC(char* ptr, uint8_t* arr)
  * @param  arr: pointer to IP array
  * @retval None.
  */
-static  void ParseIP(char* ptr, uint8_t* arr)
+static void ParseIP(char* ptr, uint8_t* arr)
 {
 	uint8_t hexnum = 0, hexcnt;
 
@@ -884,7 +884,7 @@ ES_WIFI_APState_t ES_WIFI_WaitAPStateChange(ES_WIFIObject_t *Obj)
 			ret = ES_WIFI_AP_ASSIGNED;
 			break;
 		}
-		else  if(strstr((char *)Obj->CmdData, "[JOIN   ]"))
+		else if(strstr((char *)Obj->CmdData, "[JOIN   ]"))
 		{
 			ptr = strtok((char *)Obj->CmdData + 12, ",");
 			strncpy((char *)Obj->APSettings.SSID, ptr, ES_WIFI_MAX_SSID_NAME_SIZE  );
@@ -1192,9 +1192,6 @@ ES_WIFI_Status_t ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj, ES_WIFI_Con
 				ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
 				if(ret == ES_WIFI_STATUS_OK)
 				{
-					sprintf((char*)Obj->CmdData,"P?\r");
-					ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
 					sprintf((char*)Obj->CmdData,"P5=11\r");
 					ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
 
@@ -1202,7 +1199,7 @@ ES_WIFI_Status_t ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj, ES_WIFI_Con
 					{
 						do
 						{
-							sprintf((char*)Obj->CmdData,"MR\r");
+							sprintf((char*)Obj->CmdData,"P?\r");
 							ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
 							if(ret == ES_WIFI_STATUS_OK)
 							{

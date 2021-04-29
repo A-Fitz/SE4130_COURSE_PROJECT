@@ -977,15 +977,37 @@ void StartDefaultTask(void *argument)
   /* init code for USB_HOST */
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
-  uint8_t *transmitStr[30] = {0};
 
-  apWorking = createAP();
-  //apWorking = waitForClientConnection();
-  //apWorking = getClients();
-  apWorking = startWebServer();
-  apWorking = receiveData();
+  apWorking = WIFI_Init() == WIFI_STATUS_OK;
+  apWorking = WIFI_ConfigureAP(AP_SSID, AP_PASSWORD, WIFI_ECN_WPA2_PSK, AP_CHANNEL, AP_MAX_CONNECTIONS) == WIFI_STATUS_OK;
+  apWorking = WIFI_HandleAPEvents(&APSettings) == WIFI_STATUS_ASSIGNED;
+
+  uint8_t rx_buffer[1024];
+  uint16_t respLen;
+  int Socket = 0;
+  apWorking = WIFI_StartServer(Socket, WIFI_TCP_PROTOCOL, 8080) == WIFI_STATUS_OK;
+
   for(;;)
   {
+
+  	apWorking = WIFI_ReceiveData(Socket, rx_buffer, 1200, &respLen) == WIFI_STATUS_OK;
+
+  	if(apWorking) {
+  		if(respLen > 0)
+  		{
+  			HAL_UART_Transmit(&huart6,(uint8_t*)rx_buffer,respLen,HAL_MAX_DELAY);
+  		} else {
+  			HAL_GPIO_TogglePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin);
+  		}
+  	} else {
+  		HAL_GPIO_WritePin(LED1_RED_GPIO_Port, LED1_RED_Pin, GPIO_PIN_SET);
+  	}
+
+  	uint16_t SentDataLength;
+  	uint8_t *wow = "What's up dude\n";
+  	apWorking = WIFI_SendData(Socket, wow, strlen(wow), &SentDataLength) == WIFI_STATUS_OK;
+
+  	/*
   	if(apWorking)
   	{
   		HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_SET);
@@ -1001,11 +1023,11 @@ void StartDefaultTask(void *argument)
   		HAL_GPIO_WritePin(LED1_RED_GPIO_Port, LED1_RED_Pin, GPIO_PIN_SET);
   		osDelay(250);
   		HAL_GPIO_WritePin(LED1_RED_GPIO_Port, LED1_RED_Pin, GPIO_PIN_RESET);
-  	}
+  	}*/
 
 
-  	apWorking = receiveData();
-  	osDelay(2000);
+  	//apWorking = receiveData();
+  	osDelay(1000);
   }
 
   /* USER CODE END 5 */
