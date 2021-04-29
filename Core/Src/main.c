@@ -1042,17 +1042,18 @@ void StartDefaultTask(void *argument)
 /* USER CODE END Header_StartMotorControl */
 void StartMotorControl(void *argument)
 {
-	/* USER CODE BEGIN StartMotorControl */
+  /* USER CODE BEGIN StartMotorControl */
 	/* Infinite loop */
 
 	/**
 	 * Use global variables forward, backward, right, and left to check if their is user input for any
 	 * Set global variables in a task that checks for user input from the wifi connection?
 	 */
+	int leftMotorSpeed = 0;
+	int rightMotorSpeed = 0;
 
 	for(;;)
 	{
-  /*TODO remove comment when code compiles
 
 		//Handles increase in speed
 		if(forward)
@@ -1064,9 +1065,6 @@ void StartMotorControl(void *argument)
 
 
 			//Assert forward pin
-			HAL_GPIO_WritePin(GPIOx, GPIO_Pin, PinState);
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,);// number for speed (pct time on out of 2000)
-
 
 
 
@@ -1079,13 +1077,8 @@ void StartMotorControl(void *argument)
 			rightMotorSpeed += backwardSpeedBothMotors;
 
 
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
 
 			//Assert backward pin
-			y_direction = y_direction-1;
 		}
 		if(right)
 		{
@@ -1094,28 +1087,17 @@ void StartMotorControl(void *argument)
 
 			rightMotorSpeed += rightSpeedRightMotor;
 
-
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
 			//Assert right pin
-			x_direction = x_direction+1;
+
 		}
 		if(left)
 		{
-
+			//Assert left pin
 			leftMotorSpeed += leftSpeedLeftMotor;
 
 			rightMotorSpeed += leftSpeedRightMotor;
 
 
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
-			//Assert left pin
-			x_direction = x_direction-1;
 		}
 
 		//Handles Max speed
@@ -1178,10 +1160,15 @@ void StartMotorControl(void *argument)
 			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
 		}
 
-*/
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,leftMotorSpeed);// number for speed (pct time on out of 2000)
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,rightMotorSpeed);
+
+
+
+
 		osDelay(500);
 	}
-	/* USER CODE END StartMotorControl */
+  /* USER CODE END StartMotorControl */
 }
 
 /**
