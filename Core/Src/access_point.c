@@ -6,20 +6,8 @@
  */
 bool createAP(void)
 {
-	if(WIFI_Init() ==  WIFI_STATUS_OK) {
-		if(WIFI_ConfigureAP(AP_SSID, AP_PASSWORD, WIFI_ECN_WPA2_PSK, AP_CHANNEL, AP_MAX_CONNECTIONS) == WIFI_STATUS_OK)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-//TODO [@fitzgeralaus] this is broken at the moment
-bool waitForClientConnection(void)
-{
-	return WIFI_HandleAPEvents(&APSettings) == WIFI_STATUS_ASSIGNED;
+	return WIFI_Init() ==  WIFI_STATUS_OK &&
+			WIFI_ConfigureAP(AP_SSID, AP_PASSWORD, WIFI_ECN_WPA2_PSK, AP_CHANNEL, AP_MAX_CONNECTIONS) == WIFI_STATUS_OK;
 }
 
 /**
@@ -28,24 +16,22 @@ bool waitForClientConnection(void)
  */
 bool getClients(void)
 {
-	return (WIFI_ListAPClients(&APClients) == WIFI_STATUS_OK);
+	return WIFI_ListAPClients(&APClients) == WIFI_STATUS_OK;
 }
 
-bool startWebServer(void)
+bool startTCPServer(void)
 {
-	APSocket = 0;
+	socket = 0;
 
-	if(WIFI_StartServer(APSocket, WIFI_TCP_PROTOCOL, PORT) == WIFI_STATUS_OK)
-	{
-		return true;
-	}
-	return false;
+	return WIFI_StartServer(socket, WIFI_TCP_PROTOCOL, TCP_PORT) == WIFI_STATUS_OK;
 }
 
 bool receiveData(void)
 {
-	if(WIFI_ReceiveData(APSocket, resp, 2, &respLen) == WIFI_STATUS_OK)
-	{
-		return true;
-	}
+	return WIFI_ReceiveData(socket, recData, REC_DATA_SIZE, &recDataLen) == WIFI_STATUS_OK;
+}
+
+bool sendData(uint8_t *sendData, uint8_t *sendDataLen)
+{
+	return WIFI_SendData(socket, sendData, sendDataLen, &sentDataLen) == WIFI_STATUS_OK;
 }

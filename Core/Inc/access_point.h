@@ -11,18 +11,20 @@
 #define AP_PASSWORD "12345678"
 #define AP_CHANNEL 11
 #define AP_MAX_CONNECTIONS 2
-#define PORT 8080
+#define TCP_PORT 8080
+#define REC_DATA_SIZE 1024
 
 WIFI_APSettings_t APSettings;
 WIFI_AP_Clients_t APClients;
-int32_t APSocket;
-static   uint8_t resp[1024];
-uint16_t respLen;
+uint8_t socket;
+uint8_t recData[REC_DATA_SIZE];
+uint8_t recDataLen;
+uint8_t sentDataLen;
 
 bool createAP(void);
-bool waitForClientConnection(void);
 bool getClients(void);
 bool startWebServer(void);
 bool receiveData(void);
+bool sendData(uint8_t *sendData, uint8_t *sendDataLen);
 
 #endif /*__ACCESS_POINT_H*/

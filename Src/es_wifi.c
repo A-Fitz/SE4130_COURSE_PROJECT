@@ -1173,63 +1173,40 @@ ES_WIFI_Status_t ES_WIFI_StopClientConnection(ES_WIFIObject_t *Obj, ES_WIFI_Conn
  */
 ES_WIFI_Status_t ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj, ES_WIFI_Conn_t *conn)
 {
-	ES_WIFI_Status_t ret = ES_WIFI_STATUS_ERROR;
-	char *ptr;
+  ES_WIFI_Status_t ret = ES_WIFI_STATUS_OK;
 
-	sprintf((char*)Obj->CmdData,"PK=1,3000\r");
-	ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-	if(ret == ES_WIFI_STATUS_OK)
-	{
-		sprintf((char*)Obj->CmdData,"P0=%d\r", conn->Number);
-		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-		if(ret == ES_WIFI_STATUS_OK)
-		{
-			sprintf((char*)Obj->CmdData,"P1=%d\r", conn->Type);
-			ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-			if(ret == ES_WIFI_STATUS_OK)
-			{
-				sprintf((char*)Obj->CmdData,"P2=%d\r", conn->LocalPort);
-				ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-				if(ret == ES_WIFI_STATUS_OK)
-				{
-					sprintf((char*)Obj->CmdData,"P5=11\r");
-					ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+  sprintf((char*)Obj->CmdData,"P0=%d\r", conn->Number);
+  ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+  if(ret != ES_WIFI_STATUS_OK)
+  {
+    return ret;
+  }
 
-					if(ret == ES_WIFI_STATUS_OK)
-					{
-						do
-						{
-							sprintf((char*)Obj->CmdData,"P?\r");
-							ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-							if(ret == ES_WIFI_STATUS_OK)
-							{
-								if((strstr((char *)Obj->CmdData, "[SOMA]")) && (strstr((char *)Obj->CmdData, "[EOMA]")))
-								{
-									if(strstr((char *)Obj->CmdData, "Accepted"))
-									{
-										ptr = strtok((char *)Obj->CmdData + 2, " ");
-										ptr = strtok(NULL, " ");
-										ptr = strtok(NULL, " ");
-										ptr = strtok(NULL, ":");
-										ParseIP((char *)ptr, conn->RemoteIP);
-										ret = ES_WIFI_STATUS_OK;
-										break;
-									}
-								}
-							}
-							else
-							{
-								ret = ES_WIFI_STATUS_ERROR;
-								break;
-							}
-							Obj->fops.IO_Delay(1000);
-						} while (1);
-					}
-				}
-			}
-		}
-	}
-	return ret;
+  if ((conn->Type != ES_WIFI_UDP_CONNECTION) && (conn->Type != ES_WIFI_UDP_LITE_CONNECTION))
+  {
+    sprintf((char*)Obj->CmdData,"PK=1,3000\r");
+    ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+  }
+
+  if(ret == ES_WIFI_STATUS_OK)
+  {
+      sprintf((char*)Obj->CmdData,"P1=%d\r", conn->Type);
+      ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+      if(ret == ES_WIFI_STATUS_OK)
+      {
+
+      	sprintf((char*)Obj->CmdData,"P2=%d\r", conn->LocalPort);
+      	ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+      	if (ret == ES_WIFI_STATUS_OK)
+      	{
+      		// multi accept mode
+      		sprintf((char*)Obj->CmdData,"P5=11\r");
+      		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+      	}
+
+      }
+  }
+  return ret;
 }
 
 /**
