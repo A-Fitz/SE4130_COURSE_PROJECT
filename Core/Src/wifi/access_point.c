@@ -1,4 +1,4 @@
-#include "access_point.h"
+#include "wifi/access_point.h"
 
 /**
  * @brief Creates an access point in direct connection mode.

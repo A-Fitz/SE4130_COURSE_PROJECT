@@ -51,11 +51,12 @@
 #endif  
 
 /* Includes ------------------------------------------------------------------*/
-#include "stdint.h"
-#include "string.h"
-#include "stdio.h"
-#include "stdbool.h"
-#include "es_wifi_conf.h"
+#include <stdint.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include "wifi/es_wifi_conf.h"
+#include "stm32f4xx_hal.h"
 
 /* Exported Constants --------------------------------------------------------*/
 #define ES_WIFI_PAYLOAD_SIZE     1200

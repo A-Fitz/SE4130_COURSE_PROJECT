@@ -26,7 +26,7 @@
 /* USER CODE BEGIN Includes */
 #include <stdbool.h>
 #include <string.h>
-#include "access_point.h"
+#include "wifi/access_point.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -117,13 +117,6 @@ void StartMotorControl(void *argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-
-
-
-
-
-
 
 /* USER CODE END 0 */
 
@@ -963,6 +956,57 @@ static void MX_FSMC_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+ * @brief This is a one-shot task that will create a direct access point, wait for connection, and
+ * 				then start a TCP server and wait for connection.
+ * @retval none
+ */
+void InitialWifiTask(void)
+{
+	apWorking = createAP();
+	while(APClients.count == 0)
+	{
+		apWorking = getClients();
+	}
+
+	osDelay(500);
+	apWorking = startTCPServer();
+	osDelay(500); // Need time to finish setting up TCP server.
+
+	HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_SET);  // Turn on green LED when ready to connect
+
+	//TODO [@fitzgeralaus] deal with connection timeout
+	apWorking = waitForTCPConnection();
+	osDelay(500); // Need time to finish setting up TCP connection.
+
+	if(apWorking)
+	{
+		HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_RESET); // Turn off green LED if connection successful
+	}
+}
+
+/**
+ * @brief This is a periodic task that checks for received data and at the moment also transmits a test string.
+ * @retval none
+ */
+void RecurringWifiTask(void)
+{
+	if(apWorking)
+	{
+		apWorking = receiveData();
+		if(recDataLen > 0)
+		{
+			HAL_UART_Transmit(&huart6, recData, recDataLen, HAL_MAX_DELAY);
+		}
+	}
+
+	if(apWorking)
+	{
+		char* testSendData = "What's up dude?\n";
+		apWorking = sendData((uint8_t*)testSendData, (uint8_t*)strlen(testSendData));
+	}
+}
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -978,35 +1022,11 @@ void StartDefaultTask(void *argument)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
 
-  apWorking = createAP();
-  while(APClients.count == 0)
-  {
-  	getClients();
-  }
-
-  osDelay(500);
-  apWorking = startTCPServer();
-  osDelay(500); // Need time to finish setting up TCP server.
-  apWorking = waitForTCPConnection();
-  osDelay(500); // Need time to finish setting up TCP connection.
+  InitialWifiTask();
 
   for(;;)
   {
-  	if(apWorking)
-  	{
-  		apWorking = receiveData();
-  		if(recDataLen > 0)
-  		{
-  			HAL_UART_Transmit(&huart6, recData, recDataLen, HAL_MAX_DELAY);
-  		}
-  	}
-
-  	if(apWorking)
-  	{
-  		uint8_t *testSendData = "What's up dude\n";
-  		apWorking = sendData(testSendData, strlen(testSendData));
-  	}
-
+  	RecurringWifiTask();
   	osDelay(1000);
   }
 

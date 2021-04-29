@@ -2,10 +2,9 @@
 #define __ACCESS_POINT_H
 
 #include <stdbool.h>
-#include <wifi_api.h>
-#include <time.h>
 #include <stdlib.h>
 #include "main.h"
+#include "wifi/wifi_api.h"
 
 #define AP_SSID "STM32F413H-DISCO"
 #define AP_PASSWORD "12345678"

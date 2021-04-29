@@ -43,7 +43,7 @@
  ******************************************************************************
  */
 /* Includes ------------------------------------------------------------------*/
-#include "es_wifi.h"
+#include "wifi/es_wifi.h"
 
 #define AT_OK_STRING "\r\nOK\r\n> "
 #define AT_ERROR_STRING "\r\nERROR"
