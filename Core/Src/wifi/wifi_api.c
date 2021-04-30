@@ -143,7 +143,7 @@ WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients) {
 			== ES_WIFI_STATUS_OK) {
 		if (esWifiAPClients.count > 0) {
 			APClients->count = esWifiAPClients.count;
-			memcpy(APClients->count, esWifiAPClients.count,
+			memcpy(&(APClients->count), &(esWifiAPClients.count),
 					sizeof(esWifiAPClients.count));
 			for (APClientCount = 0; APClientCount < APClients->count;
 					APClientCount++) {
@@ -190,31 +190,6 @@ WIFI_Status_t WIFI_ListAccessPoints(WIFI_APs_t *APs, uint8_t AP_MaxNbr) {
 }
 
 /**
- * @brief  Join an Access Point
- * @param  SSID : SSID string
- * @param  Password : Password string
- * @param  ecn : Encryption type
- * @param  IP_Addr : Got IP Address
- * @param  IP_Mask : Network IP mask
- * @param  Gateway_Addr : Gateway IP address
- * @param  MAC : pointer to MAC Address
- * @retval Operation status
- */
-WIFI_Status_t WIFI_Connect(const char *SSID, const char *Password,
-		WIFI_Ecn_t ecn) {
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-
-	if (ES_WIFI_Connect(&EsWifiObj, SSID, Password, (ES_WIFI_SecurityType_t) ecn)
-			== ES_WIFI_STATUS_OK) {
-		if (ES_WIFI_GetNetworkSettings(&EsWifiObj) == ES_WIFI_STATUS_OK) {
-			ret = WIFI_STATUS_OK;
-		}
-
-	}
-	return ret;
-}
-
-/**
  * @brief  This function retrieves the WiFi interface's MAC address.
  * @retval Operation Status.
  */
@@ -254,21 +229,6 @@ WIFI_Status_t WIFI_GetGateway_Address(uint8_t *Gateway_addr) {
 	}
 	return ret;
 }
-
-/**
- * @brief  Disconnect from a network
- * @param  None
- * @retval Operation status
- */
-WIFI_Status_t WIFI_Disconnect(void) {
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-	if (ES_WIFI_Disconnect(&EsWifiObj) == ES_WIFI_STATUS_OK) {
-		ret = WIFI_STATUS_OK;
-	}
-
-	return ret;
-}
-
 /**
  * @brief  Ping an IP address in the network
  * @param  ipaddr : array of the IP address
@@ -279,53 +239,6 @@ WIFI_Status_t WIFI_Ping(uint8_t *ipaddr, uint16_t count, uint16_t interval_ms) {
 
 	if (ES_WIFI_Ping(&EsWifiObj, ipaddr, count, interval_ms)
 			== ES_WIFI_STATUS_OK) {
-		ret = WIFI_STATUS_OK;
-	}
-	return ret;
-}
-
-/**
- * @brief  Configure and start a client connection
- * @param  type : Connection type TCP/UDP
- * @param  name : name of the connection
- * @param  location : Client address
- * @param  port : Remote port
- * @param  local_port : Local port
- * @retval Operation status
- */
-WIFI_Status_t WIFI_OpenClientConnection(uint32_t socket, WIFI_Protocol_t type,
-		const char *name, char *location, uint16_t port, uint16_t local_port) {
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-	ES_WIFI_Conn_t conn;
-
-	conn.Number = socket;
-	conn.RemotePort = port;
-	conn.LocalPort = local_port;
-	conn.Type =
-			(type == WIFI_TCP_PROTOCOL) ?
-					ES_WIFI_TCP_CONNECTION : ES_WIFI_UDP_CONNECTION;
-	conn.RemoteIP[0] = location[0];
-	conn.RemoteIP[1] = location[1];
-	conn.RemoteIP[2] = location[2];
-	conn.RemoteIP[3] = location[3];
-	if (ES_WIFI_StartClientConnection(&EsWifiObj, &conn) == ES_WIFI_STATUS_OK) {
-		ret = WIFI_STATUS_OK;
-	}
-	return ret;
-}
-
-/**
- * @brief  Close client connection
- * @param  type : Connection type TCP/UDP
- * @param  name : name of the connection
- * @param  location : Client address
- * @param  port : Remote port
- * @param  local_port : Local port
- * @retval Operation status
- */
-WIFI_Status_t WIFI_CloseClientConnection(void) {
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-	if (ES_WIFI_StopClientConnection(&EsWifiObj, 0) == ES_WIFI_STATUS_OK) {
 		ret = WIFI_STATUS_OK;
 	}
 	return ret;
