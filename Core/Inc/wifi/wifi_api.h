@@ -137,7 +137,8 @@ WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t type,
 		uint16_t port);
 WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout,
 		uint8_t *RemoteIp, uint16_t *RemotePort);
-WIFI_Status_t WIFI_StopServer(uint32_t socket);
+WIFI_Status_t WIFI_CloseSocket();
+WIFI_Status_t WIFI_StopServer();
 
 WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
 		uint16_t *SentDatalen);

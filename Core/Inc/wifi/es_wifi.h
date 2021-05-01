@@ -259,6 +259,7 @@ ES_WIFI_Status_t ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj,
 		ES_WIFI_Conn_t *conn);
 ES_WIFI_Status_t ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj,
 		uint32_t timeout, ES_WIFI_Conn_t *conn);
+ES_WIFI_Status_t ES_WIFI_CloseSocketSingleConn(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_StopServerSingleConn(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_SendData(ES_WIFIObject_t *Obj, uint8_t Socket,
 		uint8_t *pdata, uint16_t Reqlen, uint16_t *SentLen, uint32_t timeout);

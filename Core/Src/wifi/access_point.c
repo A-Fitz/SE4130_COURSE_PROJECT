@@ -38,6 +38,22 @@ bool startTCPServer(void) {
 }
 
 /**
+ * @brief Closes the socket on the TCP server in multi accept mode. This will allow for more connections.
+ * @retval Success of procedure.
+ */
+bool closeTCPSocket(void) {
+	return WIFI_CloseSocket() == WIFI_STATUS_OK;
+}
+
+/**
+ * @brief Close the TCP server.
+ * @retval Success of procedure.
+ */
+bool stopTCPServer(void) {
+	return WIFI_StopServer() == WIFI_STATUS_OK;
+}
+
+/**
  * @brief Wait for a connection to the TCP server.
  * @retval Success of procedure.
  */

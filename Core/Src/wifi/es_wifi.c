@@ -757,8 +757,6 @@ ES_WIFI_Status_t ES_WIFI_ActivateAP(ES_WIFIObject_t *Obj,
  * @retval Operation success
  */
 ES_WIFI_Status_t ES_WIFI_DeactivateAP(ES_WIFIObject_t *Obj) {
-	ES_WIFI_Status_t ret;
-
 	sprintf((char*) Obj->CmdData, "AE\r");
 	return AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
 }
@@ -1054,6 +1052,16 @@ ES_WIFI_Status_t ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj,
 		t = HAL_GetTick();
 	} while ((timeout == 0) || ((t < tlast) || (t < tstart)));
 	return ES_WIFI_STATUS_TIMEOUT;
+}
+
+/**
+ * @brief Close the socket for a multi-accept server
+ * @param  Obj: pointer to module handle
+ * @retval Operation Status.
+ */
+ES_WIFI_Status_t ES_WIFI_CloseSocketSingleConn(ES_WIFIObject_t *Obj) {
+	sprintf((char*) Obj->CmdData, "P5=10\r");
+	return AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
 }
 
 /**

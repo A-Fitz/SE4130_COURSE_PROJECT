@@ -253,10 +253,23 @@ WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout,
 }
 
 /**
+ * @brief Close the socket for the server. Allows for more connections.
+ * @retval Operation success
+ */
+WIFI_Status_t WIFI_CloseSocket() {
+	WIFI_Status_t ret = WIFI_STATUS_ERROR;
+
+	if (ES_WIFI_CloseSocketSingleConn(&EsWifiObj) == ES_WIFI_STATUS_OK) {
+		ret = WIFI_STATUS_OK;
+	}
+	return ret;
+}
+
+/**
  * @brief  Stop a server
  * @retval Operation status
  */
-WIFI_Status_t WIFI_StopServer(uint32_t socket) {
+WIFI_Status_t WIFI_StopServer() {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 
 	if (ES_WIFI_StopServerSingleConn(&EsWifiObj) == ES_WIFI_STATUS_OK) {
