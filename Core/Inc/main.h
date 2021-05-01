@@ -62,8 +62,6 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define QSPI_BK1_IO2_Pin GPIO_PIN_2
 #define QSPI_BK1_IO2_GPIO_Port GPIOE
-#define LED1_RED_Pin GPIO_PIN_3
-#define LED1_RED_GPIO_Port GPIOE
 #define MEMS_LED_Pin GPIO_PIN_4
 #define MEMS_LED_GPIO_Port GPIOE
 #define LCD_BL_CTRL_Pin GPIO_PIN_5
