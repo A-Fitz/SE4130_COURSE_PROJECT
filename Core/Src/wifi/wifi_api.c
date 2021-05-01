@@ -76,6 +76,7 @@ WIFI_Status_t WIFI_Init(void) {
  * @param ecn : the type of security
  * @param channel : the channel value
  * @param max_conn : the maximum number of connections
+ * @retval Operation success
  */
 WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass,
 		WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn) {
@@ -85,7 +86,7 @@ WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass,
 	strncpy((char*) ApConfig.SSID, ssid, ES_WIFI_MAX_SSID_NAME_SIZE);
 	strncpy((char*) ApConfig.Pass, pass, ES_WIFI_MAX_PSWD_NAME_SIZE);
 	ApConfig.Channel = channel;
-	ApConfig.MaxConnections = WIFI_MAX_CONNECTED_STATIONS;
+	ApConfig.MaxConnections = ES_WIFI_MAX_AP_CLIENTS;
 	ApConfig.Security = (ES_WIFI_SecurityType_t) ecn;
 
 	if (ES_WIFI_ActivateAP(&EsWifiObj, &ApConfig) == ES_WIFI_STATUS_OK) {
@@ -95,37 +96,15 @@ WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass,
 }
 
 /**
- * @brief  Handle the background events of the wifi module
- * @retval None
+ * @brief Terminate the access point.
+ * @retval Operation success
  */
-WIFI_Status_t WIFI_HandleAPEvents(WIFI_APSettings_t *setting) {
-	WIFI_Status_t ret = WIFI_STATUS_OK;
-	ES_WIFI_APState_t State;
+WIFI_Status_t WIFI_TerminateAP() {
+	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 
-	State = ES_WIFI_WaitAPStateChange(&EsWifiObj);
-
-	switch (State) {
-	case ES_WIFI_AP_ASSIGNED:
-		memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
-		memcpy(setting->MAC_Addr, EsWifiObj.APSettings.MAC_Addr, 6);
-		ret = WIFI_STATUS_ASSIGNED;
-		break;
-
-	case ES_WIFI_AP_JOINED:
-		strncpy((char*) setting->SSID, (char*) EsWifiObj.APSettings.SSID,
-				WIFI_MAX_SSID_NAME);
-		memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
-		ret = WIFI_STATUS_JOINED;
-		break;
-
-	case ES_WIFI_AP_ERROR:
-		ret = WIFI_STATUS_ERROR;
-		break;
-
-	default:
-		break;
+	if (ES_WIFI_DeactivateAP(&EsWifiObj) == ES_WIFI_STATUS_OK) {
+		ret = WIFI_STATUS_OK;
 	}
-
 	return ret;
 }
 
@@ -158,34 +137,6 @@ WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients) {
 		ret = WIFI_STATUS_OK;
 	}
 
-	return ret;
-}
-
-/**
- * @brief  List a defined number of available access points
- * @param  APs : pointer to APs structure
- * @param  AP_MaxNbr : Max APs number to be listed
- * @retval Operation status
- */
-WIFI_Status_t WIFI_ListAccessPoints(WIFI_APs_t *APs, uint8_t AP_MaxNbr) {
-	uint8_t APCount;
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-	ES_WIFI_APs_t esWifiAPs;
-
-	if (ES_WIFI_ListAccessPoints(&EsWifiObj, &esWifiAPs) == ES_WIFI_STATUS_OK) {
-		if (esWifiAPs.nbr > 0) {
-			APs->count = MIN(esWifiAPs.nbr, AP_MaxNbr);
-			for (APCount = 0; APCount < APs->count; APCount++) {
-				APs->ap[APCount].Ecn = (WIFI_Ecn_t) esWifiAPs.AP[APCount].Security;
-				strncpy((char*) APs->ap[APCount].SSID,
-						(char*) esWifiAPs.AP[APCount].SSID,
-						MIN(WIFI_MAX_SSID_NAME, WIFI_MAX_SSID_NAME));
-				APs->ap[APCount].RSSI = esWifiAPs.AP[APCount].RSSI;
-				memcpy(APs->ap[APCount].MAC, esWifiAPs.AP[APCount].MAC, 6);
-			}
-		}
-		ret = WIFI_STATUS_OK;
-	}
 	return ret;
 }
 

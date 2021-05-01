@@ -266,7 +266,7 @@ ES_WIFI_Status_t ES_WIFI_ReceiveData(ES_WIFIObject_t *Obj, uint8_t Socket,
 		uint8_t *pdata, uint16_t Reqlen, uint16_t *Receivedlen, uint32_t timeout);
 ES_WIFI_Status_t ES_WIFI_ActivateAP(ES_WIFIObject_t *Obj,
 		ES_WIFI_APConfig_t *ApConfig);
-ES_WIFI_APState_t ES_WIFI_WaitAPStateChange(ES_WIFIObject_t *Obj);
+ES_WIFI_Status_t ES_WIFI_DeactivateAP(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj,
 		ES_WIFI_AP_Clients_t *APClients);
 

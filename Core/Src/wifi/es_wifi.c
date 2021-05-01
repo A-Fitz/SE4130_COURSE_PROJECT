@@ -752,6 +752,18 @@ ES_WIFI_Status_t ES_WIFI_ActivateAP(ES_WIFIObject_t *Obj,
 }
 
 /**
+ * @brief Deactivate the DHCP and AP.
+ * @param Obj: Pointer to the module handle
+ * @retval Operation success
+ */
+ES_WIFI_Status_t ES_WIFI_DeactivateAP(ES_WIFIObject_t *Obj) {
+	ES_WIFI_Status_t ret;
+
+	sprintf((char*) Obj->CmdData, "AE\r");
+	return AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+}
+
+/**
  * @brief Get information on the AP connected clients
  * @param Obj: Pointer to the module handle
  * @param APClients: Pointer to the AP clients array

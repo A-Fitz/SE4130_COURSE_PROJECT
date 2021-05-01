@@ -11,6 +11,15 @@ bool createAP(void) {
 }
 
 /**
+ * @brief Terminate the access point.
+ * @retval Success of procedure.
+ */
+bool terminateAP()
+{
+	return WIFI_TerminateAP() == WIFI_STATUS_OK;
+}
+
+/**
  * @brief Finds all clients connected to the AP, stores in APClients variable.
  * @retval Success of procedure.
  */
@@ -34,8 +43,8 @@ bool startTCPServer(void) {
  */
 bool waitForTCPConnection(void) {
 	// TODO [@fitzgeralaus] What about a timeout?
-	return WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, remoteIP,
-			remotePort) == WIFI_STATUS_OK;
+	return WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, &remoteIP,
+			&remotePort) == WIFI_STATUS_OK;
 }
 
 /**
@@ -52,6 +61,5 @@ bool receiveData(void) {
  * @retval Success of procedure.
  */
 bool sendData(uint8_t *sendData, uint8_t *sendDataLen) {
-	return WIFI_SendData(socket, sendData, sendDataLen, &sentDataLen)
-			== WIFI_STATUS_OK;
+	return WIFI_SendData(socket, sendData, *sendDataLen, &sentDataLen) == WIFI_STATUS_OK;
 }
