@@ -10,7 +10,11 @@
 #define AP_PASSWORD "12345678"
 #define AP_CHANNEL 11
 #define TCP_PORT 8080
-#define TCP_WAIT_TIMEOUT 60000
+#define TCP_WAIT_TIMEOUT 10000
+#define TCP_RECEIVE_TIMEOUT 500
+#define TCP_SEND_TIMEOUT 500
+
+WIFI_Status_t wifiStatus;
 
 WIFI_APSettings_t APSettings;
 WIFI_AP_Clients_t APClients;
@@ -23,11 +27,14 @@ uint8_t recData[ES_WIFI_PAYLOAD_SIZE];
 uint16_t recDataLen;
 uint16_t sentDataLen;
 
-bool createAP(void);
-bool getClients(void);
-bool startTCPServer(void);
-bool waitForTCPConnection(void);
-bool receiveData(void);
-bool sendData(uint8_t *sendData, uint8_t *sendDataLen);
+void CreateAPTask(void);
+void CloseAPTask(void);
+void PollForConnectionToAPTask(void);
+void CreateTCPServerTask(void);
+void CloseTCPServerTask(void);
+void PollForTCPClientTask(void);
+void CheckTCPClientAcceptanceTask(void);
+void ReceiveDataTask(void);
+void SendDataTask(uint8_t *sendData, uint8_t *dataLen);
 
 #endif /*__ACCESS_POINT_H*/

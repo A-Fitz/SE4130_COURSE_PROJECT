@@ -992,8 +992,7 @@ ES_WIFI_Status_t ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj,
  * @param  conn: pointer to the connection structure
  * @retval Operation Status.
  */
-ES_WIFI_Status_t ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj,
-		uint32_t timeout, ES_WIFI_Conn_t *conn) {
+ES_WIFI_Status_t ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj, uint32_t timeout, ES_WIFI_Conn_t *conn) {
 	ES_WIFI_Status_t ret = ES_WIFI_STATUS_OK;
 	bool accepted = false;
 	uint32_t t;

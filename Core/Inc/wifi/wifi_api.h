@@ -125,25 +125,20 @@ WIFI_Status_t WIFI_GetIP_Address(uint8_t *ipaddr);
 WIFI_Status_t WIFI_GetGateway_Address(uint8_t *Gateway_addr);
 WIFI_Status_t WIFI_GetMAC_Address(uint8_t *mac);
 
-WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass,
-		WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn);
+WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn);
 WIFI_Status_t WIFI_TerminateAP();
 WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients);
 WIFI_Status_t WIFI_Disconnect(void);
 
 WIFI_Status_t WIFI_Ping(uint8_t *ipaddr, uint16_t count, uint16_t interval_ms);
 
-WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t type,
-		uint16_t port);
-WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout,
-		uint8_t *RemoteIp, uint16_t *RemotePort);
+WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t type, uint16_t port);
+WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout, uint8_t *RemoteIp, uint16_t *RemotePort);
 WIFI_Status_t WIFI_CloseSocket();
 WIFI_Status_t WIFI_StopServer();
 
-WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
-		uint16_t *SentDatalen);
-WIFI_Status_t WIFI_ReceiveData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
-		uint16_t *RcvDatalen);
+WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *SentDatalen, uint32_t Timeout);
+WIFI_Status_t WIFI_ReceiveData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *RcvDatalen, uint32_t Timeout);
 
 WIFI_Status_t WIFI_SetOEMProperties(const char *name, uint8_t *Mac);
 WIFI_Status_t WIFI_ResetModule(void);

@@ -2,87 +2,85 @@
 
 /**
  * @brief Creates an access point in direct connection mode.
- * @retval Success of procedure.
  */
-bool createAP(void) {
-	return WIFI_Init() == WIFI_STATUS_OK
-			&& WIFI_ConfigureAP(AP_SSID, AP_PASSWORD, WIFI_ECN_WPA2_PSK, AP_CHANNEL,
-					ES_WIFI_MAX_AP_CLIENTS) == WIFI_STATUS_OK;
+void CreateAPTask(void)
+{
+	wifiStatus = WIFI_Init();
+	if(wifiStatus == WIFI_STATUS_OK)
+	{
+		wifiStatus = WIFI_ConfigureAP(AP_SSID, AP_PASSWORD, WIFI_ECN_WPA2_PSK, AP_CHANNEL, ES_WIFI_MAX_AP_CLIENTS);
+	}
 }
 
 /**
  * @brief Terminate the access point.
- * @retval Success of procedure.
  */
-bool terminateAP()
+void CloseAPTask(void)
 {
-	return WIFI_TerminateAP() == WIFI_STATUS_OK;
+	wifiStatus = WIFI_TerminateAP();
 }
 
 /**
- * @brief Finds all clients connected to the AP, stores in APClients variable.
- * @retval Success of procedure.
+ * @brief Waits for a single connection to the AP.
  */
-bool getClients(void) {
-	return WIFI_ListAPClients(&APClients) == WIFI_STATUS_OK;
+void PollForConnectionToAPTask(void)
+{
+	wifiStatus = WIFI_ListAPClients(&APClients);
 }
 
 /**
  * @brief Creates a single connection TCP server in multi accept mode (so we don't have to wait for acceptance).
- * @retval Success of procedure.
  */
-bool startTCPServer(void) {
+void CreateTCPServerTask(void)
+{
 	socket = 0;
 
-	return WIFI_StartServer(socket, WIFI_TCP_PROTOCOL, TCP_PORT) == WIFI_STATUS_OK;
+	wifiStatus = WIFI_StartServer(socket, WIFI_TCP_PROTOCOL, TCP_PORT);
 }
 
 /**
- * @brief Closes the socket on the TCP server in multi accept mode. This will allow for more connections.
- * @retval Success of procedure.
+ * @brief Terminate the TCP server.
  */
-bool closeTCPSocket(void) {
-	return WIFI_CloseSocket() == WIFI_STATUS_OK;
+void CloseTCPServerTask(void)
+{
+	wifiStatus = WIFI_StopServer();
 }
 
 /**
- * @brief Close the TCP server.
- * @retval Success of procedure.
+ * @brief Poll for a client connection to the running TCP server. Wait TCP_WAIT_TIMEOUT ms for the connection.
  */
-bool stopTCPServer(void) {
-	return WIFI_StopServer() == WIFI_STATUS_OK;
+void PollForTCPClientTask(void)
+{
+	wifiStatus = WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, &remoteIP, &remotePort);
+}
+
+/*
+ * @brief Take user input to either accept or deny a TCP connection.
+ */
+void CheckTCPClientAcceptanceTask(void)
+{
+	/* TODO [@fitzgeralaus]
+	 *
+	 * - Need to ask user if they want to accept the client connection.
+	 * - If accepted, then continue.
+	 * - If not accepted, then close socket and restart PollForTCPClientTask.
+	 */
 }
 
 /**
- * @brief Wait for a connection to the TCP server.
- * @retval Success of procedure.
+ * @brief Receive any data that has been sent over the TCP server. Wait TCP_RECEIVE_TIMEOUT ms for the data.
  */
-bool waitForTCPConnection(void) {
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-
-	// Loop until OK or ERROR, so the timeout period doesn't really matter.
-	while(ret != WIFI_STATUS_OK && ret != WIFI_STATUS_ERROR)
-	{
-		ret = WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, &remoteIP,
-				&remotePort) == WIFI_STATUS_OK;
-	}
-
-	return ret == WIFI_STATUS_OK;
+void ReceiveDataTask(void)
+{
+	wifiStatus = WIFI_ReceiveData(socket, recData, ES_WIFI_PAYLOAD_SIZE, &recDataLen, TCP_RECEIVE_TIMEOUT);
 }
 
 /**
- * @brief Receive any data that has been sent over the TCP server.
- * @retval Success of procedure.
+ * @brief Send some data over the TCP server. Wait TCP_SEND_TIMEOUT ms for the client to accept the data.
+ * @param sendData : Pointer to the data to send.
+ * @param dataLen : Pointer to the length of the data to send.
  */
-bool receiveData(void) {
-	return WIFI_ReceiveData(socket, recData, ES_WIFI_PAYLOAD_SIZE, &recDataLen)
-			== WIFI_STATUS_OK;
-}
-
-/**
- * @brief Send some data over the TCP server when requested.
- * @retval Success of procedure.
- */
-bool sendData(uint8_t *sendData, uint8_t *sendDataLen) {
-	return WIFI_SendData(socket, sendData, *sendDataLen, &sentDataLen) == WIFI_STATUS_OK;
+void SendDataTask(uint8_t *sendData, uint8_t *dataLen)
+{
+	wifiStatus = WIFI_SendData(socket, sendData, *dataLen, &sentDataLen, TCP_SEND_TIMEOUT);
 }

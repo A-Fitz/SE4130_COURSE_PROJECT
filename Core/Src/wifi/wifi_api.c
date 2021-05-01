@@ -70,7 +70,7 @@ WIFI_Status_t WIFI_Init(void) {
 }
 
 /**
- * @brief Configure a new direct connect access point. Adapted from https://github.com/baidu/baidu-iot-samples
+ * @brief Configure a new direct connect access point.
  * @param ssid : pointer to the SSID string
  * @param pass : pointer to the password string
  * @param ecn : the type of security
@@ -78,8 +78,7 @@ WIFI_Status_t WIFI_Init(void) {
  * @param max_conn : the maximum number of connections
  * @retval Operation success
  */
-WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass,
-		WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn) {
+WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn) {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 	ES_WIFI_APConfig_t ApConfig;
 
@@ -202,8 +201,7 @@ WIFI_Status_t WIFI_Ping(uint8_t *ipaddr, uint16_t count, uint16_t interval_ms) {
  * @param  port : Remote port
  * @retval Operation status
  */
-WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t protocol,
-		uint16_t port) {
+WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t protocol, uint16_t port) {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 	ES_WIFI_Conn_t conn;
 	conn.Number = socket;
@@ -222,8 +220,7 @@ WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t protocol,
  * @param  socket : socket
  * @retval Operation status
  */
-WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout,
-		uint8_t *RemoteIp, uint16_t *RemotePort) {
+WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout, uint8_t *RemoteIp, uint16_t *RemotePort) {
 	ES_WIFI_Conn_t conn;
 	ES_WIFI_Status_t ret;
 
@@ -282,13 +279,13 @@ WIFI_Status_t WIFI_StopServer() {
  * @param  pdata : pointer to data to be sent
  * @param  Reqlen : packet size
  * @param  SentDatalen : length of data to be sent
+ * @param  Timeout : how long to wait to send
  * @retval Operation status
  */
-WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
-		uint16_t *SentDatalen) {
+WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *SentDatalen, uint32_t Timeout) {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 
-	if (ES_WIFI_SendData(&EsWifiObj, socket, pdata, Reqlen, SentDatalen, 10000)
+	if (ES_WIFI_SendData(&EsWifiObj, socket, pdata, Reqlen, SentDatalen, Timeout)
 			== ES_WIFI_STATUS_OK) {
 		ret = WIFI_STATUS_OK;
 	}
@@ -301,13 +298,13 @@ WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
  * @param  pdata : pointer to Rx buffer
  * @param  Reqlen : packet size
  * @param  *len :  pointer to length of data
+ * @param  Timeout : how long to wait to receive
  * @retval Operation status
  */
-WIFI_Status_t WIFI_ReceiveData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
-		uint16_t *RcvDatalen) {
+WIFI_Status_t WIFI_ReceiveData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *RcvDatalen, uint32_t Timeout) {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 
-	if (ES_WIFI_ReceiveData(&EsWifiObj, socket, pdata, Reqlen, RcvDatalen, 10000)
+	if (ES_WIFI_ReceiveData(&EsWifiObj, socket, pdata, Reqlen, RcvDatalen, Timeout)
 			== ES_WIFI_STATUS_OK) {
 		ret = WIFI_STATUS_OK;
 	}
