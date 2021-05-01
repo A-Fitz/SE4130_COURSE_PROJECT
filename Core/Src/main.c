@@ -85,11 +85,11 @@ bool forward = false;
 bool reverse = false;
 bool right = false;
 bool left = false;
-const int forwardSpeedBothMotors = 10; // Random number. Can be whatever we need it to be
-const int backwardSpeedBothMotors = -10;
+const int forwardSpeedBothMotors = 200; // Random number. Can be whatever we need it to be
+const int backwardSpeedBothMotors = -200;
 const int leftSpeedLeftMotor = 0;
-const int leftSpeedRightMotor = 10;
-const int rightSpeedLeftMotor = 10;
+const int leftSpeedRightMotor = 200;
+const int rightSpeedLeftMotor = 200;
 const int rightSpeedRightMotor = 0;
 /* USER CODE END PV */
 
@@ -696,7 +696,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, LED1_RED_Pin|MEMS_LED_Pin|LCD_BL_CTRL_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3|MEMS_LED_Pin|LCD_BL_CTRL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13|LED2_GREEN_Pin, GPIO_PIN_RESET);
@@ -719,8 +719,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF9_QSPI;
   HAL_GPIO_Init(QSPI_BK1_IO2_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LED1_RED_Pin MEMS_LED_Pin LCD_BL_CTRL_Pin */
-  GPIO_InitStruct.Pin = LED1_RED_Pin|MEMS_LED_Pin|LCD_BL_CTRL_Pin;
+  /*Configure GPIO pins : PE3 MEMS_LED_Pin LCD_BL_CTRL_Pin */
+  GPIO_InitStruct.Pin = GPIO_PIN_3|MEMS_LED_Pin|LCD_BL_CTRL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -1028,14 +1028,18 @@ void StartMotorControl(void *argument)
 	for(;;)
 	{
 
+		forward = true;
+
+
 		//Handles increase in speed
 		if(forward)
 		{
 
+			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
 			leftMotorSpeed += forwardSpeedBothMotors;
 			rightMotorSpeed += forwardSpeedBothMotors;
 
-
+			forward = false;
 
 			//Assert forward pin
 
@@ -1049,7 +1053,7 @@ void StartMotorControl(void *argument)
 
 			rightMotorSpeed += backwardSpeedBothMotors;
 
-
+			reverse = false;
 
 			//Assert backward pin
 		}
@@ -1059,6 +1063,8 @@ void StartMotorControl(void *argument)
 			leftMotorSpeed += rightSpeedLeftMotor;
 
 			rightMotorSpeed += rightSpeedRightMotor;
+
+			right = false;
 
 			//Assert right pin
 
@@ -1070,12 +1076,12 @@ void StartMotorControl(void *argument)
 
 			rightMotorSpeed += leftSpeedRightMotor;
 
-
+			left = false;
 		}
 
 		//Handles Max speed
 
-		if(leftMotorSpeed > 20)
+		if(leftMotorSpeed > 400)
 		{
 
 			leftMotorSpeed = 20;
@@ -1139,7 +1145,7 @@ void StartMotorControl(void *argument)
 
 
 
-		osDelay(500);
+		osDelay(10);
 	}
   /* USER CODE END StartMotorControl */
 }
