@@ -7,7 +7,7 @@
 bool createAP(void) {
 	return WIFI_Init() == WIFI_STATUS_OK
 			&& WIFI_ConfigureAP(AP_SSID, AP_PASSWORD, WIFI_ECN_WPA2_PSK, AP_CHANNEL,
-					AP_MAX_CONNECTIONS) == WIFI_STATUS_OK;
+					ES_WIFI_MAX_AP_CLIENTS) == WIFI_STATUS_OK;
 }
 
 /**
@@ -42,9 +42,16 @@ bool startTCPServer(void) {
  * @retval Success of procedure.
  */
 bool waitForTCPConnection(void) {
-	// TODO [@fitzgeralaus] What about a timeout?
-	return WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, &remoteIP,
-			&remotePort) == WIFI_STATUS_OK;
+	WIFI_Status_t ret = WIFI_STATUS_ERROR;
+
+	// Loop until OK or ERROR, so the timeout period doesn't really matter.
+	while(ret != WIFI_STATUS_OK && ret != WIFI_STATUS_ERROR)
+	{
+		ret = WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, &remoteIP,
+				&remotePort) == WIFI_STATUS_OK;
+	}
+
+	return ret == WIFI_STATUS_OK;
 }
 
 /**
@@ -52,7 +59,7 @@ bool waitForTCPConnection(void) {
  * @retval Success of procedure.
  */
 bool receiveData(void) {
-	return WIFI_ReceiveData(socket, recData, REC_PAYLOAD_SIZE, &recDataLen)
+	return WIFI_ReceiveData(socket, recData, ES_WIFI_PAYLOAD_SIZE, &recDataLen)
 			== WIFI_STATUS_OK;
 }
 

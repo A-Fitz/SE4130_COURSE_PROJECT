@@ -1071,6 +1071,7 @@ ES_WIFI_Status_t ES_WIFI_StopServerSingleConn(ES_WIFIObject_t *Obj) {
  * @param  Obj: pointer to module handle
  * @param  Socket: number of the socket
  * @param  pdata: pointer to data
+ * @param  Reqlen: packet size
  * @param  len : length of the data to be sent
  * @retval Operation Status.
  */
@@ -1110,6 +1111,7 @@ ES_WIFI_Status_t ES_WIFI_SendData(ES_WIFIObject_t *Obj, uint8_t Socket,
  * @param  Obj: pointer to module handle
  * @param  Socket: number of the socket
  * @param  pdata: pointer to data
+ * @param  Reqlen: packet size
  * @param  len : pointer to the length of the data to be received
  * @retval Operation Status.
  */

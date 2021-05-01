@@ -55,7 +55,7 @@
 #include "stm32f4xx_hal.h"
 
 /* Exported Constants --------------------------------------------------------*/
-#define ES_WIFI_PAYLOAD_SIZE     1200
+
 /* Exported macro-------------------------------------------------------------*/
 #define MIN(a, b)  ((a) < (b) ? (a) : (b))
 

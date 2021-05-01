@@ -9,11 +9,8 @@
 #define AP_SSID "STM32F413H-DISCO"
 #define AP_PASSWORD "12345678"
 #define AP_CHANNEL 11
-#define AP_MAX_CONNECTIONS 2
 #define TCP_PORT 8080
 #define TCP_WAIT_TIMEOUT 60000
-#define REC_DATA_SIZE 1024
-#define REC_PAYLOAD_SIZE 1200
 
 WIFI_APSettings_t APSettings;
 WIFI_AP_Clients_t APClients;
@@ -22,7 +19,7 @@ uint8_t socket;
 uint8_t remoteIP;
 uint16_t remotePort;
 
-uint8_t recData[REC_DATA_SIZE];
+uint8_t recData[ES_WIFI_PAYLOAD_SIZE];
 uint16_t recDataLen;
 uint16_t sentDataLen;
 

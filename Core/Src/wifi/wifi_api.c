@@ -267,7 +267,8 @@ WIFI_Status_t WIFI_StopServer(uint32_t socket) {
 /**
  * @brief  Send Data on a socket
  * @param  pdata : pointer to data to be sent
- * @param  len : length of data to be sent
+ * @param  Reqlen : packet size
+ * @param  SentDatalen : length of data to be sent
  * @retval Operation status
  */
 WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
@@ -285,6 +286,7 @@ WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
 /**
  * @brief  Receive Data from a socket
  * @param  pdata : pointer to Rx buffer
+ * @param  Reqlen : packet size
  * @param  *len :  pointer to length of data
  * @retval Operation status
  */
