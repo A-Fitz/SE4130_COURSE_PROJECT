@@ -111,7 +111,7 @@ void StartDefaultTask(void *argument);
 void StartMotorControl(void *argument);
 
 /* USER CODE BEGIN PFP */
-
+void InitializeConnection(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -135,7 +135,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  //uwTickPrio = MY_TICK_INT_PRIORITY;
+  InitializeConnection();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -954,7 +954,28 @@ static void MX_FSMC_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+/**
+ * @brief This function initializes both the access point and the TCP server.
+ * 				It will only end once a client joins the AP and connects to the TCP server.
+ */
+void InitializeConnection(void)
+{
+	  CreateAP();
 
+	  // Infinitely poll for a connection to the AP.
+	  while(APClients.count == 0)
+	  {
+	  	PollForConnectionToAP();
+	  }
+	  CreateTCPServer();
+
+	  PollForTCPClient();
+	  // Infinitely poll for a connection to the TCP server.
+	  while(wifiStatus != WIFI_STATUS_OK && wifiStatus != WIFI_STATUS_ERROR)
+	  {
+	  	PollForTCPClient();
+	  }
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -970,35 +991,18 @@ void StartDefaultTask(void *argument)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
 
-  /* START set up AP and TCP server */
-  CreateAPTask();
-  // Infinitely poll for a connection to the AP.
-  while(APClients.count == 0)
-  {
-  	PollForConnectionToAPTask();
-  	osDelay(1000);
-  }
-  CreateTCPServerTask();
-  // Infinitely poll for a connection to the TCP server.
-  while(wifiStatus != WIFI_STATUS_OK && wifiStatus != WIFI_STATUS_ERROR)
-  {
-  	PollForTCPClientTask();
-  	osDelay(1000);
-  }
-  CheckTCPClientAcceptanceTask();
-  /* END set up AP and TCP server */
-
   for(;;)
   {
   	if(wifiStatus == WIFI_STATUS_OK)
   	{
+  		ReceiveData();
   		if(recDataLen > 0)
   		{
   			HAL_UART_Transmit(&huart6, recData, recDataLen, HAL_MAX_DELAY);
   		}
 
-  		char* testSendData = "Test message over wifi.";
-  		SendDataTask((uint8_t*)testSendData, (uint8_t*)strlen(testSendData));
+  		char* testSendData = "Test";
+  		SendData((uint8_t*)testSendData, (uint8_t*)strlen(testSendData));
   	}
   	osDelay(1000);
   }
