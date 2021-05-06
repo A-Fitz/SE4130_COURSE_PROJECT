@@ -4,7 +4,7 @@
  * @brief Creates an access point in direct connection mode.
  * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-void CreateAP(void)
+void AP_CreateAP(void)
 {
 	wifiStatus = WIFI_Init();
 	if(wifiStatus == WIFI_STATUS_OK)
@@ -17,7 +17,7 @@ void CreateAP(void)
  * @brief Terminate the access point.
  * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-void CloseAP(void)
+void AP_CloseAP(void)
 {
 	wifiStatus = WIFI_TerminateAP();
 }
@@ -26,7 +26,7 @@ void CloseAP(void)
  * @brief Waits for a single connection to the AP.
  * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-void PollForConnectionToAP(void)
+void AP_PollForConnectionToAP(void)
 {
 	wifiStatus = WIFI_ListAPClients(&APClients);
 }
@@ -35,7 +35,7 @@ void PollForConnectionToAP(void)
  * @brief Creates a single connection TCP server in multi accept mode (so we don't have to wait for acceptance).
  * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-void CreateTCPServer(void)
+void AP_CreateTCPServer(void)
 {
 	socket = 0;
 
@@ -46,7 +46,7 @@ void CreateTCPServer(void)
  * @brief Terminate the TCP server.
  * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-void CloseTCPServer(void)
+void AP_CloseTCPServer(void)
 {
 	wifiStatus = WIFI_StopServer();
 }
@@ -55,7 +55,7 @@ void CloseTCPServer(void)
  * @brief Poll for a client connection to the running TCP server. Wait TCP_WAIT_TIMEOUT ms for the connection.
  * 				Sets wifiStatus to WIFI_STATUS_OK, WIFI_STATUS_TIMEOUT, or WIFI_STATUS_ERROR.
  */
-void PollForTCPClient(void)
+void AP_PollForTCPClient(void)
 {
 	wifiStatus = WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, &remoteIP, &remotePort);
 }
@@ -64,7 +64,7 @@ void PollForTCPClient(void)
  * @brief Receive any data that has been sent over the TCP server. Wait TCP_RECEIVE_TIMEOUT ms for the data.
  * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-void ReceiveData(void)
+void AP_ReceiveData(void)
 {
 	wifiStatus = WIFI_ReceiveData(socket, recData, ES_WIFI_PAYLOAD_SIZE, &recDataLen, TCP_RECEIVE_TIMEOUT);
 }
@@ -75,7 +75,7 @@ void ReceiveData(void)
  * @param sendData : Pointer to the data to send.
  * @param dataLen : Pointer to the length of the data to send.
  */
-void SendData(uint8_t *sendData, uint8_t *dataLen)
+void AP_SendData(uint8_t *sendData, uint8_t dataLen)
 {
-	wifiStatus = WIFI_SendData(socket, sendData, *dataLen, &sentDataLen, TCP_SEND_TIMEOUT);
+	wifiStatus = WIFI_SendData(socket, sendData, dataLen, &sentDataLen, TCP_SEND_TIMEOUT);
 }

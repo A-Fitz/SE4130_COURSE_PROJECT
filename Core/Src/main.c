@@ -66,10 +66,10 @@ UART_HandleTypeDef huart6;
 SRAM_HandleTypeDef hsram1;
 SRAM_HandleTypeDef hsram2;
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
+/* Definitions for connPollTask */
+osThreadId_t connPollTaskHandle;
+const osThreadAttr_t connPollTask_attributes = {
+  .name = "connPollTask",
   .priority = (osPriority_t) osPriorityLow,
   .stack_size = 2048 * 4
 };
@@ -107,7 +107,7 @@ static void MX_USART6_UART_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
-void StartDefaultTask(void *argument);
+void StartConnectionPollTask(void *argument);
 void StartMotorControl(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -135,7 +135,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  InitializeConnection();
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -159,7 +159,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-
+  InitializeConnection();
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -182,8 +182,8 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* creation of connPollTask */
+  connPollTaskHandle = osThreadNew(StartConnectionPollTask, NULL, &connPollTask_attributes);
 
   /* creation of motorControl */
   motorControlHandle = osThreadNew(StartMotorControl, NULL, &motorControl_attributes);
@@ -960,54 +960,56 @@ static void MX_FSMC_Init(void)
  */
 void InitializeConnection(void)
 {
-	  CreateAP();
+	AP_CreateAP();
 
-	  // Infinitely poll for a connection to the AP.
-	  while(APClients.count == 0)
-	  {
-	  	PollForConnectionToAP();
-	  }
-	  CreateTCPServer();
+	// Infinitely poll for a connection to the AP.
+	while(APClients.count == 0)
+	{
+		AP_PollForConnectionToAP();
+	}
+	AP_CreateTCPServer();
 
-	  PollForTCPClient();
-	  // Infinitely poll for a connection to the TCP server.
-	  while(wifiStatus != WIFI_STATUS_OK && wifiStatus != WIFI_STATUS_ERROR)
-	  {
-	  	PollForTCPClient();
-	  }
+	AP_PollForTCPClient();
+	// Infinitely poll for a connection to the TCP server.
+	while(wifiStatus != WIFI_STATUS_OK && wifiStatus != WIFI_STATUS_ERROR)
+	{
+		AP_PollForTCPClient();
+	}
+
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET); // Signify that the TCP connection began successfully.
 }
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_StartConnectionPollTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the connPollTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+/* USER CODE END Header_StartConnectionPollTask */
+void StartConnectionPollTask(void *argument)
 {
-  /* init code for USB_HOST */
-  MX_USB_HOST_Init();
-  /* USER CODE BEGIN 5 */
+	/* init code for USB_HOST */
+	MX_USB_HOST_Init();
+	/* USER CODE BEGIN 5 */
 
-  for(;;)
-  {
-  	if(wifiStatus == WIFI_STATUS_OK)
-  	{
-  		ReceiveData();
-  		if(recDataLen > 0)
-  		{
-  			HAL_UART_Transmit(&huart6, recData, recDataLen, HAL_MAX_DELAY);
-  		}
+	for(;;)
+	{
+		if(wifiStatus == WIFI_STATUS_OK)
+		{
+			AP_ReceiveData();
+			if(recDataLen > 0)
+			{
+				HAL_UART_Transmit(&huart6, recData, recDataLen, HAL_MAX_DELAY);
+			}
 
-  		char* testSendData = "Test";
-  		SendData((uint8_t*)testSendData, (uint8_t*)strlen(testSendData));
-  	}
-  	osDelay(1000);
-  }
+			char* testSendData = "Test";
+			AP_SendData((uint8_t*)testSendData, (uint8_t)strlen(testSendData));
+		}
+		osDelay(1000);
+	}
 
-  /* USER CODE END 5 */
+	/* USER CODE END 5 */
 }
 
 /* USER CODE BEGIN Header_StartMotorControl */

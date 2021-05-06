@@ -27,13 +27,13 @@ uint8_t recData[ES_WIFI_PAYLOAD_SIZE];
 uint16_t recDataLen;
 uint16_t sentDataLen;
 
-void CreateAP(void);
-void CloseAP(void);
-void PollForConnectionToAP(void);
-void CreateTCPServer(void);
-void CloseTCPServer(void);
-void PollForTCPClient(void);
-void ReceiveData(void);
-void SendData(uint8_t *sendData, uint8_t *dataLen);
+void AP_CreateAP(void);
+void AP_CloseAP(void);
+void AP_PollForConnectionToAP(void);
+void AP_CreateTCPServer(void);
+void AP_CloseTCPServer(void);
+void AP_PollForTCPClient(void);
+void AP_ReceiveData(void);
+void AP_SendData(uint8_t *sendData, uint8_t dataLen);
 
 #endif /*__ACCESS_POINT_H*/
