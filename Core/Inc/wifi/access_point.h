@@ -12,7 +12,7 @@
 #define TCP_PORT 8080
 #define TCP_WAIT_TIMEOUT 10000
 #define TCP_RECEIVE_TIMEOUT 50
-#define TCP_SEND_TIMEOUT 500
+#define TCP_SEND_TIMEOUT 50
 
 WIFI_Status_t wifiStatus;
 
