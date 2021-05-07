@@ -1073,8 +1073,8 @@ void StartConnectionPollTask(void *argument)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
 
-  //double x = 0;
-  //double y = 0;
+  double x = 0;
+  double y = 0;
 
 	for(;;)
 	{
@@ -1088,8 +1088,9 @@ void StartConnectionPollTask(void *argument)
 				toPrint[recDataLen] = 0;
 				BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)toPrint);
 
-				//x = (double)(strtok(toPrint, ','));
-				//y = (double)(strtok(NULL, ','));
+				char* eptr;
+				x = strtod(strtok(toPrint, ","), &eptr);
+				y = strtod(strtok(NULL, ","), &eptr);
 
 				// Send back the position
 				AP_SendData((uint8_t*)recData, (uint8_t)recDataLen);

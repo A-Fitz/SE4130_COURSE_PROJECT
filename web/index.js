@@ -1,9 +1,7 @@
 const express = require('express');
 const http = require('http');
 const net = require('net');
-const {
-  Server
-} = require("socket.io");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
@@ -34,8 +32,7 @@ server.listen(80, () => {
   console.log('listening on *:80');
 });
 
-var x = 0.5,
-  y = 0.5;
+var x = 0.5, y = 0.5;
 
 io.on('connection', (webSocket) => {
   console.log('Web client connected.');
