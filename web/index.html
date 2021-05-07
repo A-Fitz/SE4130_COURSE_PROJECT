@@ -3,114 +3,113 @@
   <head>
     <title>Team Nuclear Football</title>
     <style>
-		body {
-			margin: 0;
-			padding-bottom: 3rem;
-		}
+      body {
+      	margin: 0;
+      	padding-bottom: 3rem;
+      }
 
-		table {
-			border-collapse: separate;
-			border-spacing: 0;
-			color: #474747;
-			width: 10%;
-		}
+      table {
+      	border-collapse: separate;
+      	border-spacing: 0;
+      	color: #474747;
+      	width: 10%;
+      }
 
-		th,
-		td {
-			padding: 10px 15px;
-			vertical-align: middle;
-		}
+      th,
+      td {
+      	padding: 10px 15px;
+      	vertical-align: middle;
+      }
 
-		thead {
-			background: #474747;
-			color: #fff;
-			font-size: 1em;
-		}
+      thead {
+      	background: #474747;
+      	color: #fff;
+      	font-size: 1em;
+      }
 
-		tbody tr:nth-child(even) {
-			background: #f0f0f2;
-		}
+      tbody tr:nth-child(even) {
+      	background: #f0f0f2;
+      }
 
-		td {
-			border-bottom: 1px solid #111111;
-			border-right: 1px solid #111111;
-		}
+      td {
+      	border-bottom: 1px solid #111111;
+      	border-right: 1px solid #111111;
+      }
 
-		td:first-child {
-			border-left: 1px solid #111111;
-		}
-		
-		td:nth-child(2) {
-			font-weight: bold;
-		}
-		
-		#widget {
-			border: 1px solid black;
-		}
-		
-		#markerbounds {
-		  margin: auto;
-		  position: relative;
-		}
+      td:first-child {
+      	border-left: 1px solid #111111;
+      }
 
-		#box {
-		  margin: auto;
-		  background-color: lightsteelblue;
-		  position: absolute;
-		}
+      td:nth-child(2) {
+      	font-weight: bold;
+      }
 
-		#marker {
-		  position: relative;
-		  background-color: brown;
-		  border-radius: 100px;
-		}
+      #widget {
+      	border: 1px solid black;
+      }
 
-		#coord {
-		  font-family: serif;
-		  font-size: 14px;
-		  margin: 0px;
-		}
-		
+      #markerbounds {
+        margin: auto;
+        position: relative;
+      }
+
+      #box {
+        margin: auto;
+        background-color: lightsteelblue;
+        position: absolute;
+      }
+
+      #marker {
+        position: relative;
+        background-color: brown;
+        border-radius: 100px;
+      }
+
+      #coord {
+        font-family: serif;
+        font-size: 14px;
+        margin: 0px;
+      }
     </style>
   </head>
   <body>
     <table>
-	<colgroup>
-		<col style="width: 30%">
-		<col style="width: 70%">
-	</colgroup>
-	<thead>
-	  <tr>
-		<th colspan="2">Current Inputs</th>
-	  </tr>
-	</thead>
-	<tbody>
-	  <tr>
-		<td>x</td>
-		<td id="xTd"></td>
-	  </tr>
-	  <tr>
-		<td>y</td>
-		<td id="yTd"></td>
-	  </tr>
-	</tbody>
-	</table>
-	
-	<div id="widget">
-	  <div id="markerbounds">
-		<div id="box">
-		  <div id="marker"></div>
-		</div>
-	  </div>
-	  <div>
-		<p id="coord"></p>
-	  </div>
-	</div>
-	
-	<script src="/scripts/jquery.min.js"></script>
-	<script src="/scripts/jquery-ui.min.js"></script>
-	<script src="/scripts/socket.io.min.js"></script>
-	<script src="slider.js"></script>
-	<script src="client.js"></script>
+      <colgroup>
+        <col style="width: 30%" />
+        <col style="width: 70%" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th colspan="2">Current Inputs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>x</td>
+          <td id="xTd"></td>
+        </tr>
+        <tr>
+          <td>y</td>
+          <td id="yTd"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="widget">
+      <div id="markerbounds">
+        <div id="box">
+          <div id="marker"></div>
+        </div>
+      </div>
+      <div>
+        <p id="coord"></p>
+      </div>
+    </div>
+
+    <script src="/scripts/jquery.min.js"></script>
+    <script src="/scripts/jquery-ui.min.js"></script>
+    <script src="/scripts/socket.io.min.js"></script>
+    <script src="slider.js"></script>
+    <script src="client.js"></script>
   </body>
 </html>
