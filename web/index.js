@@ -28,8 +28,8 @@ app.get('/slider.js', (req, res) => {
   res.sendFile(__dirname + '/slider.js');
 });
 
-server.listen(80, () => {
-  console.log('listening on *:80');
+server.listen(8080, () => {
+  console.log('Listening on *:3000');
 });
 
 var x = 0.5, y = 0.5;

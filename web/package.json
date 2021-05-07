@@ -1,7 +1,7 @@
 {
-  "name": "socket-chat-example",
+  "name": "team-nuclear-football",
   "version": "0.0.1",
-  "description": "my first socket.io app",
+  "description": "SE4130 PROJECT",
   "dependencies": {
     "express": "^4.17.1",
     "hotkeys-js": "^3.8.3",
