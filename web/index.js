@@ -18,6 +18,9 @@ app.get('/scripts/jquery.min.js', function(req, res) {
 app.get('/scripts/jquery-ui.min.js', function(req, res) {
   res.sendFile(__dirname + '/node_modules/jquery-ui-dist/jquery-ui.min.js');
 });
+app.get('/scripts/jquery.ui.touch-punch.min.js', function(req, res) {
+  res.sendFile(__dirname + '/jquery.ui.touch-punch.min.js');
+});
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
@@ -29,7 +32,7 @@ app.get('/slider.js', (req, res) => {
 });
 
 server.listen(8080, () => {
-  console.log('Listening on *:3000');
+  console.log('Listening on *:8080');
 });
 
 var x = 0.5, y = 0.5;
