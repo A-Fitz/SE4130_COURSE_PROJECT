@@ -1,11 +1,7 @@
-
-
 const express = require('express');
 const http = require('http');
 const net = require('net');
-const {
-	Server
-} = require("socket.io");
+const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
@@ -13,26 +9,29 @@ const io = new Server(server);
 const tcpSocket = new net.Socket();
 
 // Set up routes for resources
-app.get('/scripts/socket.io.min.js', function (req, res) {
+app.get('/js/socket.io.min.js', function (req, res) {
 	res.sendFile(__dirname + '/node_modules/socket.io/client-dist/socket.io.min.js');
 });
-app.get('/scripts/jquery.min.js', function (req, res) {
+app.get('/js/jquery.min.js', function (req, res) {
 	res.sendFile(__dirname + '/node_modules/jquery/dist/jquery.min.js');
 });
-app.get('/scripts/jquery-ui.min.js', function (req, res) {
+app.get('/js/jquery-ui.min.js', function (req, res) {
 	res.sendFile(__dirname + '/node_modules/jquery-ui-dist/jquery-ui.min.js');
 });
-app.get('/scripts/jquery.ui.touch-punch.min.js', function (req, res) {
-	res.sendFile(__dirname + '/jquery.ui.touch-punch.min.js');
+app.get('/js/jquery.ui.touch-punch.min.js', function (req, res) {
+	res.sendFile(__dirname + '/js/jquery.ui.touch-punch.min.js');
 });
 app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/index.html');
 });
-app.get('/client.js', (req, res) => {
-	res.sendFile(__dirname + '/client.js');
+app.get('/js/client.js', (req, res) => {
+	res.sendFile(__dirname + '/js/client.js');
 });
-app.get('/slider.js', (req, res) => {
-	res.sendFile(__dirname + '/slider.js');
+app.get('/js/slider.js', (req, res) => {
+	res.sendFile(__dirname + '/js/slider.js');
+});
+app.get('/style.css', (req, res) => {
+	res.sendFile(__dirname + '/style.css');
 });
 
 server.listen(8080, () => {
