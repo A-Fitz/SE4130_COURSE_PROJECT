@@ -28,23 +28,35 @@ app.get('/slider.js', (req, res) => {
   res.sendFile(__dirname + '/slider.js');
 });
 
+server.listen(80, () => {
+  console.log('listening on *:80');
+});
+
+var x = 0.5, y = 0.5;
+
 io.on('connection', (webSocket) => {
 	console.log('Web client connected.');
 	
 	tcpSocket.connect(8080, '192.168.10.1', function() {
+		tcpSocket.setEncoding("utf8");
 		console.log('Connected to TCP server.');
+		setInterval(sendPosition, 500);
 	});
 
-	//tcpSocket.on('data', function(recData) {
-	//	console.log(recData);
-	//	//io.emit('inputIn', data);
-	//});
 	
-	webSocket.on('inputOut', ([x,y]) => {
-		tcpSocket.write('test');
+	tcpSocket.on('data', function(recData) {
+		io.emit('inputIn', recData.split(','));
+		//console.log(recData.split(','));
+	});
+	
+	webSocket.on('inputOut', ([i_x,i_y]) => {
+		x = i_x;
+		y = i_y;
 	});
 });
 
-server.listen(80, () => {
-  console.log('listening on *:80');
-});
+// on timer
+function sendPosition() {
+	tcpSocket.write(x + ',' + y);
+}
+

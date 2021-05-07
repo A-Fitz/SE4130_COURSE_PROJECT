@@ -1008,7 +1008,7 @@ void InitializeLCD(void)
 	BSP_LCD_SetBackColor(LCD_COLOR_BLUE);
 	BSP_LCD_SetFont(&Font12);
 	BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
-	BSP_LCD_FillRect(0, 0, BSP_LCD_GetXSize(), (BSP_LCD_GetYSize() -210));
+	BSP_LCD_FillRect(0, 0, BSP_LCD_GetXSize(), (BSP_LCD_GetYSize() - 210));
 	BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
 	BSP_LCD_DisplayStringAt(5, 10, (uint8_t *)"Team Nuclear Football", CENTER_MODE);
 	BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
@@ -1073,6 +1073,9 @@ void StartConnectionPollTask(void *argument)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
 
+  //double x = 0;
+  //double y = 0;
+
 	for(;;)
 	{
 		if(wifiStatus == WIFI_STATUS_OK)
@@ -1084,12 +1087,15 @@ void StartConnectionPollTask(void *argument)
 				strncpy(toPrint, (char*)recData, recDataLen);
 				toPrint[recDataLen] = 0;
 				BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)toPrint);
-			}
 
-			char* testSendData = "Test";
-			AP_SendData((uint8_t*)testSendData, (uint8_t)strlen(testSendData));
+				//x = (double)(strtok(toPrint, ','));
+				//y = (double)(strtok(NULL, ','));
+
+				// Send back the position
+				AP_SendData((uint8_t*)recData, (uint8_t)recDataLen);
+			}
 		}
-		osDelay(1000);
+		osDelay(10);
 	}
 
   /* USER CODE END 5 */
