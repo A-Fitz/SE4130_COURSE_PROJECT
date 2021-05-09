@@ -45,24 +45,9 @@
 #ifndef __WIFI_H_
 #define __WIFI_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Includes ------------------------------------------------------------------*/
 #include "wifi/es_wifi.h"
 #include "wifi/es_wifi_io.h"
-
-/* Exported constants --------------------------------------------------------*/
-#define WIFI_MAX_SSID_NAME            100
-#define WIFI_MAX_PSWD_NAME            100
-#define WIFI_MAX_APS                  100
-#define WIFI_MAX_CONNECTIONS          4
-#define WIFI_MAX_MODULE_NAME          100
-#define WIFI_MAX_CONNECTED_STATIONS   2
-#define WIFI_MSG_JOINED      1
-#define WIFI_MSG_ASSIGNED    2
-#define WIFI_MAX_AP_CLIENTS 8
 
 /* Exported types ------------------------------------------------------------*/
 typedef enum {
@@ -91,21 +76,6 @@ typedef enum {
 } WIFI_Status_t;
 
 typedef struct {
-	WIFI_Ecn_t Ecn; /*!< Security of Wi-Fi spot. This parameter has a value of \ref WIFI_Ecn_t enumeration */
-	char SSID[WIFI_MAX_SSID_NAME + 1]; /*!< Service Set Identifier value. Wi-Fi spot name */
-	int16_t RSSI; /*!< Signal strength of Wi-Fi spot */
-	uint8_t MAC[6]; /*!< MAC address of spot */
-	uint8_t Channel; /*!< Wi-Fi channel */
-	uint8_t Offset; /*!< Frequency offset from base 2.4GHz in kHz */
-	uint8_t Calibration; /*!< Frequency offset calibration */
-} WIFI_AP_t;
-
-typedef struct {
-	WIFI_AP_t ap[WIFI_MAX_APS];
-	uint8_t count;
-} WIFI_APs_t;
-
-typedef struct {
 	uint8_t Number; /*!< Connection number */
 	uint16_t RemotePort; /*!< Remote PORT number */
 	uint16_t LocalPort;
@@ -129,14 +99,14 @@ typedef struct {
 } WIFI_AP_Clients_t;
 
 typedef struct {
-	uint8_t SSID[WIFI_MAX_SSID_NAME + 1];
-	uint8_t PSWD[WIFI_MAX_PSWD_NAME + 1];
+	uint8_t SSID[ES_WIFI_MAX_SSID_NAME_SIZE + 1];
+	uint8_t PSWD[ES_WIFI_MAX_PSWD_NAME_SIZE + 1];
 	uint8_t channel;
 	WIFI_Ecn_t Ecn;
 } WIFI_APConfig_t;
 
 typedef struct {
-	uint8_t SSID[WIFI_MAX_SSID_NAME + 1]; /*!< Network public name for ESP AP mode */
+	uint8_t SSID[ES_WIFI_MAX_SSID_NAME_SIZE + 1]; /*!< Network public name for ESP AP mode */
 	uint8_t IP_Addr[4]; /*!< IP Address */
 	uint8_t MAC_Addr[6]; /*!< MAC address */
 } WIFI_APSettings_t;
@@ -151,45 +121,29 @@ typedef struct {
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 WIFI_Status_t WIFI_Init(void);
-WIFI_Status_t WIFI_ListAccessPoints(WIFI_APs_t *APs, uint8_t AP_MaxNbr);
-WIFI_Status_t WIFI_Connect(const char *SSID, const char *Password,
-		WIFI_Ecn_t ecn);
 WIFI_Status_t WIFI_GetIP_Address(uint8_t *ipaddr);
 WIFI_Status_t WIFI_GetGateway_Address(uint8_t *Gateway_addr);
 WIFI_Status_t WIFI_GetMAC_Address(uint8_t *mac);
 
-WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass,
-		WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn);
-WIFI_Status_t WIFI_HandleAPEvents(WIFI_APSettings_t *setting);
+WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn);
+WIFI_Status_t WIFI_TerminateAP();
 WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients);
 WIFI_Status_t WIFI_Disconnect(void);
 
 WIFI_Status_t WIFI_Ping(uint8_t *ipaddr, uint16_t count, uint16_t interval_ms);
-WIFI_Status_t WIFI_OpenClientConnection(uint32_t socket, WIFI_Protocol_t type,
-		const char *name, char *location, uint16_t port, uint16_t local_port);
-WIFI_Status_t WIFI_CloseClientConnection(void);
 
-WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t type,
-		uint16_t port);
-WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout,
-		uint8_t *RemoteIp, uint16_t *RemotePort);
-WIFI_Status_t WIFI_StopServer(uint32_t socket);
+WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t type, uint16_t port);
+WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout, uint8_t *RemoteIp, uint16_t *RemotePort);
+WIFI_Status_t WIFI_CloseSocket();
+WIFI_Status_t WIFI_StopServer();
 
-WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
-		uint16_t *SentDatalen);
-WIFI_Status_t WIFI_ReceiveData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
-		uint16_t *RcvDatalen);
-WIFI_Status_t WIFI_StartClient(void);
-WIFI_Status_t WIFI_StopClient(void);
+WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *SentDatalen, uint32_t Timeout);
+WIFI_Status_t WIFI_ReceiveData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *RcvDatalen, uint32_t Timeout);
 
 WIFI_Status_t WIFI_SetOEMProperties(const char *name, uint8_t *Mac);
 WIFI_Status_t WIFI_ResetModule(void);
 WIFI_Status_t WIFI_SetModuleDefault(void);
 WIFI_Status_t WIFI_ModuleFirmwareUpdate(const char *url);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __WIFI_H_ */
 

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Team Nuclear Football</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <table>
+      <colgroup>
+        <col style="width: 30%" />
+        <col style="width: 70%" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th colspan="2">Current Inputs</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>x</td>
+          <td id="xTd"></td>
+        </tr>
+        <tr>
+          <td>y</td>
+          <td id="yTd"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="widget">
+      <div id="markerbounds">
+        <div id="box">
+          <div id="marker"></div>
+        </div>
+      </div>
+      <div>
+        <p id="coord"></p>
+      </div>
+    </div>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/jquery-ui.min.js"></script>
+	<script src="/js/jquery.ui.touch-punch.min.js"></script>
+    <script src="/js/socket.io.min.js"></script>
+    <script src="/js/slider.js"></script>
+    <script src="/js/client.js"></script>
+  </body>
+</html>

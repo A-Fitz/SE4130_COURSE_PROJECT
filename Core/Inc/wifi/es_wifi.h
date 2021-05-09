@@ -46,10 +46,6 @@
 #ifndef __ES_WIFI_H
 #define __ES_WIFI_H
 
-#ifdef __cplusplus
- extern "C" {
-#endif  
-
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 #include <string.h>
@@ -59,7 +55,7 @@
 #include "stm32f4xx_hal.h"
 
 /* Exported Constants --------------------------------------------------------*/
-#define ES_WIFI_PAYLOAD_SIZE     1200
+
 /* Exported macro-------------------------------------------------------------*/
 #define MIN(a, b)  ((a) < (b) ? (a) : (b))
 
@@ -238,10 +234,6 @@ ES_WIFI_Status_t ES_WIFI_Init(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_SetTimeout(ES_WIFIObject_t *Obj, uint32_t Timeout);
 ES_WIFI_Status_t ES_WIFI_ListAccessPoints(ES_WIFIObject_t *Obj,
 		ES_WIFI_APs_t *APs);
-ES_WIFI_Status_t ES_WIFI_Connect(ES_WIFIObject_t *Obj, const char *SSID,
-		const char *Password, ES_WIFI_SecurityType_t SecType);
-ES_WIFI_Status_t ES_WIFI_Disconnect(ES_WIFIObject_t *Obj);
-uint8_t ES_WIFI_IsConnected(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_GetNetworkSettings(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_GetMACAddress(ES_WIFIObject_t *Obj, uint8_t *mac);
 ES_WIFI_Status_t ES_WIFI_GetIPAddress(ES_WIFIObject_t *Obj, uint8_t *ipaddr);
@@ -258,32 +250,24 @@ ES_WIFI_Status_t ES_WIFI_ResetToFactoryDefault(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_ResetModule(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_SetProductName(ES_WIFIObject_t *Obj,
 		uint8_t *ProductName);
-#if (ES_WIFI_USE_PING == 1)
 ES_WIFI_Status_t ES_WIFI_Ping(ES_WIFIObject_t *Obj, uint8_t *address,
 		uint16_t count, uint16_t interval_ms);
-#endif
 ES_WIFI_Status_t ES_WIFI_DNS_LookUp(ES_WIFIObject_t *Obj, const char *url,
 		uint8_t *ipaddress);
-ES_WIFI_Status_t ES_WIFI_StartClientConnection(ES_WIFIObject_t *Obj,
-		ES_WIFI_Conn_t *conn);
-ES_WIFI_Status_t ES_WIFI_StopClientConnection(ES_WIFIObject_t *Obj,
-		ES_WIFI_Conn_t *conn);
 
 ES_WIFI_Status_t ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj,
 		ES_WIFI_Conn_t *conn);
 ES_WIFI_Status_t ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj,
 		uint32_t timeout, ES_WIFI_Conn_t *conn);
+ES_WIFI_Status_t ES_WIFI_CloseSocketSingleConn(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_StopServerSingleConn(ES_WIFIObject_t *Obj);
-ES_WIFI_Status_t ES_WIFI_StartServerMultiConn(ES_WIFIObject_t *Obj,
-		ES_WIFI_Conn_t *conn);
-ES_WIFI_Status_t ES_WIFI_StopServerMultiConn(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_SendData(ES_WIFIObject_t *Obj, uint8_t Socket,
 		uint8_t *pdata, uint16_t Reqlen, uint16_t *SentLen, uint32_t timeout);
 ES_WIFI_Status_t ES_WIFI_ReceiveData(ES_WIFIObject_t *Obj, uint8_t Socket,
 		uint8_t *pdata, uint16_t Reqlen, uint16_t *Receivedlen, uint32_t timeout);
 ES_WIFI_Status_t ES_WIFI_ActivateAP(ES_WIFIObject_t *Obj,
 		ES_WIFI_APConfig_t *ApConfig);
-ES_WIFI_APState_t ES_WIFI_WaitAPStateChange(ES_WIFIObject_t *Obj);
+ES_WIFI_Status_t ES_WIFI_DeactivateAP(ES_WIFIObject_t *Obj);
 ES_WIFI_Status_t ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj,
 		ES_WIFI_AP_Clients_t *APClients);
 
@@ -297,9 +281,7 @@ ES_WIFI_Status_t ES_WIFI_GetSystemConfig(ES_WIFIObject_t *Obj,
 ES_WIFI_Status_t ES_WIFI_RegisterBusIO(ES_WIFIObject_t *Obj,
 		IO_Init_Func IO_Init, IO_DeInit_Func IO_DeInit, IO_Delay_Func IO_Delay,
 		IO_Send_Func IO_Send, IO_Receive_Func IO_Receive);
-#ifdef __cplusplus
-}
-#endif
+
 #endif /*__ES_WIFI_H*/
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

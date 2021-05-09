@@ -694,57 +694,6 @@ ES_WIFI_Status_t ES_WIFI_ListAccessPoints(ES_WIFIObject_t *Obj,
 }
 
 /**
- * @brief  Join an Access point.
- * @param  Obj: pointer to module handle
- * @param  Ssid: the access point id.
- * @param  Password: the Access point password.
- * @param  SecType: Security type.
- * @retval Operation Status.
- */
-ES_WIFI_Status_t ES_WIFI_Connect(ES_WIFIObject_t *Obj, const char *SSID,
-		const char *Password, ES_WIFI_SecurityType_t SecType) {
-	ES_WIFI_Status_t ret;
-
-	sprintf((char*) Obj->CmdData, "C1=%s\r", SSID);
-	ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-	if (ret == ES_WIFI_STATUS_OK) {
-		sprintf((char*) Obj->CmdData, "C2=%s\r", Password);
-		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
-		if (ret == ES_WIFI_STATUS_OK) {
-			Obj->Security = SecType;
-			sprintf((char*) Obj->CmdData, "C3=%d\r", (uint8_t) SecType);
-			ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
-			if (ret == ES_WIFI_STATUS_OK) {
-				sprintf((char*) Obj->CmdData, "C0\r");
-				ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-				if (ret == ES_WIFI_STATUS_OK) {
-					Obj->NetSettings.IsConnected = 1;
-				}
-			}
-		}
-	}
-	return ret;
-}
-
-/**
- * @brief  Check whether the module is connected to an access point.
- * @retval Operation Status.
- */
-uint8_t ES_WIFI_IsConnected(ES_WIFIObject_t *Obj) {
-	return Obj->NetSettings.IsConnected;
-}
-/**
- * @brief  Disconnect from a network.
- * @param  Obj: pointer to module handle
- * @retval Operation Status.
- */
-ES_WIFI_Status_t ES_WIFI_Disconnect(ES_WIFIObject_t *Obj) {
-	sprintf((char*) Obj->CmdData, "CD\r");
-	return AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-}
-/**
  * @brief  Return network settings.
  * @param  Obj: pointer to module handle
  * @param  Pointer to network setting structure.
@@ -803,44 +752,13 @@ ES_WIFI_Status_t ES_WIFI_ActivateAP(ES_WIFIObject_t *Obj,
 }
 
 /**
- * @brief  Get AP notification.
- * @param  Obj: pointer to module handle
- * @param  ip : Assigned ip address.
- * @param  ip : joind device mac address.
- * @retval AP State.
+ * @brief Deactivate the DHCP and AP.
+ * @param Obj: Pointer to the module handle
+ * @retval Operation success
  */
-ES_WIFI_APState_t ES_WIFI_WaitAPStateChange(ES_WIFIObject_t *Obj) {
-	/* THIS IS BROKEN. Instead, I modified ES_WIFI_WaitServerConnection to notice when a client is assigned. */
-
-	ES_WIFI_APState_t ret = ES_WIFI_AP_NONE;
-	char *ptr;
-	do {
-		sprintf((char*) Obj->CmdData, "MR\r");
-		if (AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData)
-				!= ES_WIFI_STATUS_OK) {
-			return ES_WIFI_AP_ERROR;
-		} else if (strstr((char*) Obj->CmdData, "[AP DHCP]")) {
-			ptr = strtok((char*) Obj->CmdData + 2, " ");
-			ptr = strtok(NULL, " ");
-			ptr = strtok(NULL, " ");
-			ptr = strtok(NULL, " ");
-			ParseMAC((char*) ptr, Obj->APSettings.MAC_Addr);
-			ptr = strtok(NULL, " ");
-			ptr = strtok(NULL, "\r");
-			ParseIP((char*) ptr, Obj->APSettings.IP_Addr);
-			ret = ES_WIFI_AP_ASSIGNED;
-			break;
-		} else if (strstr((char*) Obj->CmdData, "[JOIN   ]")) {
-			ptr = strtok((char*) Obj->CmdData + 12, ",");
-			strncpy((char*) Obj->APSettings.SSID, ptr, ES_WIFI_MAX_SSID_NAME_SIZE);
-			ptr = strtok(NULL, ",");
-			ParseIP((char*) ptr, Obj->APSettings.IP_Addr);
-			ret = ES_WIFI_AP_JOINED;
-			break;
-		}
-		Obj->fops.IO_Delay(100);
-	} while (1);
-	return ret;
+ES_WIFI_Status_t ES_WIFI_DeactivateAP(ES_WIFIObject_t *Obj) {
+	sprintf((char*) Obj->CmdData, "AE\r");
+	return AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
 }
 
 /**
@@ -973,7 +891,6 @@ ES_WIFI_Status_t ES_WIFI_GetSystemConfig(ES_WIFIObject_t *Obj,
 	return ret;
 }
 
-#if (ES_WIFI_USE_PING == 1)
 /**
  * @brief  Ping an IP address.
  * @param  Obj: pointer to module handle
@@ -1006,7 +923,6 @@ ES_WIFI_Status_t ES_WIFI_Ping(ES_WIFIObject_t *Obj, uint8_t *address,
 
 	return ret;
 }
-#endif
 
 /**
  * @brief  DNS Lookup to get IP address .
@@ -1026,66 +942,6 @@ ES_WIFI_Status_t ES_WIFI_DNS_LookUp(ES_WIFIObject_t *Obj, const char *url,
 	if (ret == ES_WIFI_STATUS_OK) {
 		ptr = strtok((char*) Obj->CmdData + 2, "\r");
 		ParseIP(ptr, ipaddress);
-	}
-	return ret;
-}
-
-/**
- * @brief  Configure and Start a Client connection.
- * @param  Obj: pointer to module handle
- * @param  conn: pointer to the connection structure
- * @retval Operation Status.
- */
-ES_WIFI_Status_t ES_WIFI_StartClientConnection(ES_WIFIObject_t *Obj,
-		ES_WIFI_Conn_t *conn) {
-	ES_WIFI_Status_t ret;
-
-	sprintf((char*) Obj->CmdData, "P0=%d\r", conn->Number);
-	ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
-	if (ret == ES_WIFI_STATUS_OK) {
-		sprintf((char*) Obj->CmdData, "P1=%d\r", conn->Type);
-		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-		if (ret == ES_WIFI_STATUS_OK) {
-			if ((conn->Type == ES_WIFI_UDP_CONNECTION) && (conn->LocalPort > 0)) {
-				sprintf((char*) Obj->CmdData, "P2=%d\r", conn->RemotePort);
-				if (AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData)
-						== ES_WIFI_STATUS_ERROR) {
-					return ES_WIFI_STATUS_ERROR;
-				}
-			}
-			sprintf((char*) Obj->CmdData, "P4=%d\r", conn->RemotePort);
-			ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
-			if (ret == ES_WIFI_STATUS_OK) {
-				sprintf((char*) Obj->CmdData, "P3=%d.%d.%d.%d\r", conn->RemoteIP[0],
-						conn->RemoteIP[1], conn->RemoteIP[2], conn->RemoteIP[3]);
-				ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-				if (ret == ES_WIFI_STATUS_OK) {
-					sprintf((char*) Obj->CmdData, "P6=1\r");
-					ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-				}
-			}
-		}
-	}
-	return ret;
-}
-
-/**
- * @brief  Stop Client connection.
- * @param  Obj: pointer to module handle
- * @retval Operation Status.
- */
-ES_WIFI_Status_t ES_WIFI_StopClientConnection(ES_WIFIObject_t *Obj,
-		ES_WIFI_Conn_t *conn) {
-	ES_WIFI_Status_t ret;
-
-	sprintf((char*) Obj->CmdData, "P0=%d\r", conn->Number);
-	ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
-	if (ret == ES_WIFI_STATUS_OK) {
-		sprintf((char*) Obj->CmdData, "P6=0\r");
-		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
 	}
 	return ret;
 }
@@ -1136,8 +992,7 @@ ES_WIFI_Status_t ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj,
  * @param  conn: pointer to the connection structure
  * @retval Operation Status.
  */
-ES_WIFI_Status_t ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj,
-		uint32_t timeout, ES_WIFI_Conn_t *conn) {
+ES_WIFI_Status_t ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj, uint32_t timeout, ES_WIFI_Conn_t *conn) {
 	ES_WIFI_Status_t ret = ES_WIFI_STATUS_OK;
 	bool accepted = false;
 	uint32_t t;
@@ -1199,6 +1054,16 @@ ES_WIFI_Status_t ES_WIFI_WaitServerConnection(ES_WIFIObject_t *Obj,
 }
 
 /**
+ * @brief Close the socket for a multi-accept server
+ * @param  Obj: pointer to module handle
+ * @retval Operation Status.
+ */
+ES_WIFI_Status_t ES_WIFI_CloseSocketSingleConn(ES_WIFIObject_t *Obj) {
+	sprintf((char*) Obj->CmdData, "P5=10\r");
+	return AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+}
+
+/**
  * @brief  Stop a Server.
  * @param  Obj: pointer to module handle
  * @retval Operation Status.
@@ -1209,105 +1074,11 @@ ES_WIFI_Status_t ES_WIFI_StopServerSingleConn(ES_WIFIObject_t *Obj) {
 }
 
 /**
- * @brief  Configure and Start a Server.
- * @param  Obj: pointer to module handle
- * @param  conn: pointer to the connection structure
- * @retval Operation Status.
- */
-ES_WIFI_Status_t ES_WIFI_StartServerMultiConn(ES_WIFIObject_t *Obj,
-		ES_WIFI_Conn_t *conn) {
-	ES_WIFI_Status_t ret = ES_WIFI_STATUS_ERROR;
-	char *ptr;
-
-	sprintf((char*) Obj->CmdData, "PK=1,3000\r");
-	ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-	if (ret == ES_WIFI_STATUS_OK) {
-		sprintf((char*) Obj->CmdData, "P0=%d\r", conn->Number);
-		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-		if (ret == ES_WIFI_STATUS_OK) {
-			sprintf((char*) Obj->CmdData, "P1=%d\r", conn->Type);
-			ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-			if (ret == ES_WIFI_STATUS_OK) {
-				sprintf((char*) Obj->CmdData, "P2=%d\r", conn->LocalPort);
-				ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-				if (ret == ES_WIFI_STATUS_OK) {
-					sprintf((char*) Obj->CmdData, "P8=6\r");
-					ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
-					if (ret == ES_WIFI_STATUS_OK) {
-						sprintf((char*) Obj->CmdData, "P5=1\r");
-						ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
-						if (ret == ES_WIFI_STATUS_OK) {
-							do {
-								sprintf((char*) Obj->CmdData, "MR\r");
-								ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-								if (ret == ES_WIFI_STATUS_OK) {
-									if ((strstr((char*) Obj->CmdData, "[SOMA]"))
-											&& (strstr((char*) Obj->CmdData, "[EOMA]"))) {
-										if (strstr((char*) Obj->CmdData, "Accepted")) {
-											ptr = strtok((char*) Obj->CmdData + 2, " ");
-											ptr = strtok(NULL, " ");
-											ptr = strtok(NULL, " ");
-											ptr = strtok(NULL, ":");
-											ParseIP((char*) ptr, conn->RemoteIP);
-											ret = ES_WIFI_STATUS_OK;
-											break;
-										}
-									}
-								} else {
-									ret = ES_WIFI_STATUS_ERROR;
-									break;
-								}
-								Obj->fops.IO_Delay(1000);
-							} while (1);
-						}
-						if (ret == ES_WIFI_STATUS_OK) {
-							sprintf((char*) Obj->CmdData, "P7=1\r");
-							ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
-						}
-					}
-				}
-			}
-		}
-	}
-	return ret;
-}
-
-/**
- * @brief  Stop a Server.
- * @param  Obj: pointer to module handle
- * @retval Operation Status.
- */
-ES_WIFI_Status_t ES_WIFI_StopServerMultiConn(ES_WIFIObject_t *Obj) {
-	ES_WIFI_Status_t ret = ES_WIFI_STATUS_ERROR;
-
-	/* close the socket handle for the current request. */
-	sprintf((char*) Obj->CmdData, "P7=2\r");
-	ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-
-	if (ret == ES_WIFI_STATUS_OK) {
-		/*Get the next request out of the queue */
-		sprintf((char*) Obj->CmdData, "P7=3\r");
-		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-		if (ret == ES_WIFI_STATUS_OK) {
-			if (ret == ES_WIFI_STATUS_OK) {
-				if (Obj->fops.IO_Receive(Obj->CmdData, 0, Obj->Timeout) > 0) {
-					if (strstr((char*) Obj->CmdData, "Accepted")) {
-						ret = ES_WIFI_STATUS_OK;
-					}
-				}
-			}
-		}
-	}
-	return ret;
-}
-/**
  * @brief  Send an amount data over WIFI.
  * @param  Obj: pointer to module handle
  * @param  Socket: number of the socket
  * @param  pdata: pointer to data
+ * @param  Reqlen: packet size
  * @param  len : length of the data to be sent
  * @retval Operation Status.
  */
@@ -1347,6 +1118,7 @@ ES_WIFI_Status_t ES_WIFI_SendData(ES_WIFIObject_t *Obj, uint8_t Socket,
  * @param  Obj: pointer to module handle
  * @param  Socket: number of the socket
  * @param  pdata: pointer to data
+ * @param  Reqlen: packet size
  * @param  len : pointer to the length of the data to be received
  * @retval Operation Status.
  */

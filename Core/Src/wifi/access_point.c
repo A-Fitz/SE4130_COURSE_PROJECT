@@ -2,56 +2,80 @@
 
 /**
  * @brief Creates an access point in direct connection mode.
- * @retval Success of procedure.
+ * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-bool createAP(void) {
-	return WIFI_Init() == WIFI_STATUS_OK
-			&& WIFI_ConfigureAP(AP_SSID, AP_PASSWORD, WIFI_ECN_WPA2_PSK, AP_CHANNEL,
-					AP_MAX_CONNECTIONS) == WIFI_STATUS_OK;
+void AP_CreateAP(void)
+{
+	wifiStatus = WIFI_Init();
+	if(wifiStatus == WIFI_STATUS_OK)
+	{
+		wifiStatus = WIFI_ConfigureAP(AP_SSID, AP_PASSWORD, WIFI_ECN_WPA2_PSK, AP_CHANNEL, ES_WIFI_MAX_AP_CLIENTS);
+	}
 }
 
 /**
- * @brief Finds all clients connected to the AP, stores in APClients variable.
- * @retval Success of procedure.
+ * @brief Terminate the access point.
+ * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-bool getClients(void) {
-	return WIFI_ListAPClients(&APClients) == WIFI_STATUS_OK;
+void AP_CloseAP(void)
+{
+	wifiStatus = WIFI_TerminateAP();
+}
+
+/**
+ * @brief Waits for a single connection to the AP.
+ * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
+ */
+void AP_PollForConnectionToAP(void)
+{
+	wifiStatus = WIFI_ListAPClients(&APClients);
 }
 
 /**
  * @brief Creates a single connection TCP server in multi accept mode (so we don't have to wait for acceptance).
- * @retval Success of procedure.
+ * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-bool startTCPServer(void) {
+void AP_CreateTCPServer(void)
+{
 	socket = 0;
 
-	return WIFI_StartServer(socket, WIFI_TCP_PROTOCOL, TCP_PORT) == WIFI_STATUS_OK;
+	wifiStatus = WIFI_StartServer(socket, WIFI_TCP_PROTOCOL, TCP_PORT);
 }
 
 /**
- * @brief Wait for a connection to the TCP server.
- * @retval Success of procedure.
+ * @brief Terminate the TCP server.
+ * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-bool waitForTCPConnection(void) {
-	// TODO [@fitzgeralaus] What about a timeout?
-	return WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, remoteIP,
-			remotePort) == WIFI_STATUS_OK;
+void AP_CloseTCPServer(void)
+{
+	wifiStatus = WIFI_StopServer();
 }
 
 /**
- * @brief Receive any data that has been sent over the TCP server.
- * @retval Success of procedure.
+ * @brief Poll for a client connection to the running TCP server. Wait TCP_WAIT_TIMEOUT ms for the connection.
+ * 				Sets wifiStatus to WIFI_STATUS_OK, WIFI_STATUS_TIMEOUT, or WIFI_STATUS_ERROR.
  */
-bool receiveData(void) {
-	return WIFI_ReceiveData(socket, recData, REC_PAYLOAD_SIZE, &recDataLen)
-			== WIFI_STATUS_OK;
+void AP_PollForTCPClient(void)
+{
+	wifiStatus = WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, &remoteIP, &remotePort);
 }
 
 /**
- * @brief Send some data over the TCP server when requested.
- * @retval Success of procedure.
+ * @brief Receive any data that has been sent over the TCP server. Wait TCP_RECEIVE_TIMEOUT ms for the data.
+ * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-bool sendData(uint8_t *sendData, uint8_t *sendDataLen) {
-	return WIFI_SendData(socket, sendData, sendDataLen, &sentDataLen)
-			== WIFI_STATUS_OK;
+void AP_ReceiveData(void)
+{
+	wifiStatus = WIFI_ReceiveData(socket, recData, ES_WIFI_PAYLOAD_SIZE, &recDataLen, TCP_RECEIVE_TIMEOUT);
+}
+
+/**
+ * @brief Send some data over the TCP server. Wait TCP_SEND_TIMEOUT ms for the client to accept the data.
+ * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
+ * @param sendData : Pointer to the data to send.
+ * @param dataLen : Pointer to the length of the data to send.
+ */
+void AP_SendData(uint8_t *sendData, uint8_t dataLen)
+{
+	wifiStatus = WIFI_SendData(socket, sendData, dataLen, &sentDataLen, TCP_SEND_TIMEOUT);
 }

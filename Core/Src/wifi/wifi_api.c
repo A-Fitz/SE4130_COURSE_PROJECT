@@ -70,22 +70,22 @@ WIFI_Status_t WIFI_Init(void) {
 }
 
 /**
- * @brief Configure a new direct connect access point. Adapted from https://github.com/baidu/baidu-iot-samples
+ * @brief Configure a new direct connect access point.
  * @param ssid : pointer to the SSID string
  * @param pass : pointer to the password string
  * @param ecn : the type of security
  * @param channel : the channel value
  * @param max_conn : the maximum number of connections
+ * @retval Operation success
  */
-WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass,
-		WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn) {
+WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn) {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 	ES_WIFI_APConfig_t ApConfig;
 
 	strncpy((char*) ApConfig.SSID, ssid, ES_WIFI_MAX_SSID_NAME_SIZE);
 	strncpy((char*) ApConfig.Pass, pass, ES_WIFI_MAX_PSWD_NAME_SIZE);
 	ApConfig.Channel = channel;
-	ApConfig.MaxConnections = WIFI_MAX_CONNECTED_STATIONS;
+	ApConfig.MaxConnections = ES_WIFI_MAX_AP_CLIENTS;
 	ApConfig.Security = (ES_WIFI_SecurityType_t) ecn;
 
 	if (ES_WIFI_ActivateAP(&EsWifiObj, &ApConfig) == ES_WIFI_STATUS_OK) {
@@ -95,37 +95,15 @@ WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass,
 }
 
 /**
- * @brief  Handle the background events of the wifi module
- * @retval None
+ * @brief Terminate the access point.
+ * @retval Operation success
  */
-WIFI_Status_t WIFI_HandleAPEvents(WIFI_APSettings_t *setting) {
-	WIFI_Status_t ret = WIFI_STATUS_OK;
-	ES_WIFI_APState_t State;
+WIFI_Status_t WIFI_TerminateAP() {
+	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 
-	State = ES_WIFI_WaitAPStateChange(&EsWifiObj);
-
-	switch (State) {
-	case ES_WIFI_AP_ASSIGNED:
-		memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
-		memcpy(setting->MAC_Addr, EsWifiObj.APSettings.MAC_Addr, 6);
-		ret = WIFI_STATUS_ASSIGNED;
-		break;
-
-	case ES_WIFI_AP_JOINED:
-		strncpy((char*) setting->SSID, (char*) EsWifiObj.APSettings.SSID,
-				WIFI_MAX_SSID_NAME);
-		memcpy(setting->IP_Addr, EsWifiObj.APSettings.IP_Addr, 4);
-		ret = WIFI_STATUS_JOINED;
-		break;
-
-	case ES_WIFI_AP_ERROR:
-		ret = WIFI_STATUS_ERROR;
-		break;
-
-	default:
-		break;
+	if (ES_WIFI_DeactivateAP(&EsWifiObj) == ES_WIFI_STATUS_OK) {
+		ret = WIFI_STATUS_OK;
 	}
-
 	return ret;
 }
 
@@ -143,7 +121,7 @@ WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients) {
 			== ES_WIFI_STATUS_OK) {
 		if (esWifiAPClients.count > 0) {
 			APClients->count = esWifiAPClients.count;
-			memcpy(APClients->count, esWifiAPClients.count,
+			memcpy(&(APClients->count), &(esWifiAPClients.count),
 					sizeof(esWifiAPClients.count));
 			for (APClientCount = 0; APClientCount < APClients->count;
 					APClientCount++) {
@@ -158,59 +136,6 @@ WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients) {
 		ret = WIFI_STATUS_OK;
 	}
 
-	return ret;
-}
-
-/**
- * @brief  List a defined number of available access points
- * @param  APs : pointer to APs structure
- * @param  AP_MaxNbr : Max APs number to be listed
- * @retval Operation status
- */
-WIFI_Status_t WIFI_ListAccessPoints(WIFI_APs_t *APs, uint8_t AP_MaxNbr) {
-	uint8_t APCount;
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-	ES_WIFI_APs_t esWifiAPs;
-
-	if (ES_WIFI_ListAccessPoints(&EsWifiObj, &esWifiAPs) == ES_WIFI_STATUS_OK) {
-		if (esWifiAPs.nbr > 0) {
-			APs->count = MIN(esWifiAPs.nbr, AP_MaxNbr);
-			for (APCount = 0; APCount < APs->count; APCount++) {
-				APs->ap[APCount].Ecn = (WIFI_Ecn_t) esWifiAPs.AP[APCount].Security;
-				strncpy((char*) APs->ap[APCount].SSID,
-						(char*) esWifiAPs.AP[APCount].SSID,
-						MIN(WIFI_MAX_SSID_NAME, WIFI_MAX_SSID_NAME));
-				APs->ap[APCount].RSSI = esWifiAPs.AP[APCount].RSSI;
-				memcpy(APs->ap[APCount].MAC, esWifiAPs.AP[APCount].MAC, 6);
-			}
-		}
-		ret = WIFI_STATUS_OK;
-	}
-	return ret;
-}
-
-/**
- * @brief  Join an Access Point
- * @param  SSID : SSID string
- * @param  Password : Password string
- * @param  ecn : Encryption type
- * @param  IP_Addr : Got IP Address
- * @param  IP_Mask : Network IP mask
- * @param  Gateway_Addr : Gateway IP address
- * @param  MAC : pointer to MAC Address
- * @retval Operation status
- */
-WIFI_Status_t WIFI_Connect(const char *SSID, const char *Password,
-		WIFI_Ecn_t ecn) {
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-
-	if (ES_WIFI_Connect(&EsWifiObj, SSID, Password, (ES_WIFI_SecurityType_t) ecn)
-			== ES_WIFI_STATUS_OK) {
-		if (ES_WIFI_GetNetworkSettings(&EsWifiObj) == ES_WIFI_STATUS_OK) {
-			ret = WIFI_STATUS_OK;
-		}
-
-	}
 	return ret;
 }
 
@@ -254,21 +179,6 @@ WIFI_Status_t WIFI_GetGateway_Address(uint8_t *Gateway_addr) {
 	}
 	return ret;
 }
-
-/**
- * @brief  Disconnect from a network
- * @param  None
- * @retval Operation status
- */
-WIFI_Status_t WIFI_Disconnect(void) {
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-	if (ES_WIFI_Disconnect(&EsWifiObj) == ES_WIFI_STATUS_OK) {
-		ret = WIFI_STATUS_OK;
-	}
-
-	return ret;
-}
-
 /**
  * @brief  Ping an IP address in the network
  * @param  ipaddr : array of the IP address
@@ -285,61 +195,13 @@ WIFI_Status_t WIFI_Ping(uint8_t *ipaddr, uint16_t count, uint16_t interval_ms) {
 }
 
 /**
- * @brief  Configure and start a client connection
- * @param  type : Connection type TCP/UDP
- * @param  name : name of the connection
- * @param  location : Client address
- * @param  port : Remote port
- * @param  local_port : Local port
- * @retval Operation status
- */
-WIFI_Status_t WIFI_OpenClientConnection(uint32_t socket, WIFI_Protocol_t type,
-		const char *name, char *location, uint16_t port, uint16_t local_port) {
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-	ES_WIFI_Conn_t conn;
-
-	conn.Number = socket;
-	conn.RemotePort = port;
-	conn.LocalPort = local_port;
-	conn.Type =
-			(type == WIFI_TCP_PROTOCOL) ?
-					ES_WIFI_TCP_CONNECTION : ES_WIFI_UDP_CONNECTION;
-	conn.RemoteIP[0] = location[0];
-	conn.RemoteIP[1] = location[1];
-	conn.RemoteIP[2] = location[2];
-	conn.RemoteIP[3] = location[3];
-	if (ES_WIFI_StartClientConnection(&EsWifiObj, &conn) == ES_WIFI_STATUS_OK) {
-		ret = WIFI_STATUS_OK;
-	}
-	return ret;
-}
-
-/**
- * @brief  Close client connection
- * @param  type : Connection type TCP/UDP
- * @param  name : name of the connection
- * @param  location : Client address
- * @param  port : Remote port
- * @param  local_port : Local port
- * @retval Operation status
- */
-WIFI_Status_t WIFI_CloseClientConnection(void) {
-	WIFI_Status_t ret = WIFI_STATUS_ERROR;
-	if (ES_WIFI_StopClientConnection(&EsWifiObj, 0) == ES_WIFI_STATUS_OK) {
-		ret = WIFI_STATUS_OK;
-	}
-	return ret;
-}
-
-/**
  * @brief  Configure and start a Server
  * @param  type : Connection type TCP/UDP
  * @param  name : name of the connection
  * @param  port : Remote port
  * @retval Operation status
  */
-WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t protocol,
-		uint16_t port) {
+WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t protocol, uint16_t port) {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 	ES_WIFI_Conn_t conn;
 	conn.Number = socket;
@@ -358,8 +220,7 @@ WIFI_Status_t WIFI_StartServer(uint32_t socket, WIFI_Protocol_t protocol,
  * @param  socket : socket
  * @retval Operation status
  */
-WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout,
-		uint8_t *RemoteIp, uint16_t *RemotePort) {
+WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout, uint8_t *RemoteIp, uint16_t *RemotePort) {
 	ES_WIFI_Conn_t conn;
 	ES_WIFI_Status_t ret;
 
@@ -389,10 +250,23 @@ WIFI_Status_t WIFI_WaitServerConnection(int socket, uint32_t Timeout,
 }
 
 /**
+ * @brief Close the socket for the server. Allows for more connections.
+ * @retval Operation success
+ */
+WIFI_Status_t WIFI_CloseSocket() {
+	WIFI_Status_t ret = WIFI_STATUS_ERROR;
+
+	if (ES_WIFI_CloseSocketSingleConn(&EsWifiObj) == ES_WIFI_STATUS_OK) {
+		ret = WIFI_STATUS_OK;
+	}
+	return ret;
+}
+
+/**
  * @brief  Stop a server
  * @retval Operation status
  */
-WIFI_Status_t WIFI_StopServer(uint32_t socket) {
+WIFI_Status_t WIFI_StopServer() {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 
 	if (ES_WIFI_StopServerSingleConn(&EsWifiObj) == ES_WIFI_STATUS_OK) {
@@ -403,14 +277,15 @@ WIFI_Status_t WIFI_StopServer(uint32_t socket) {
 /**
  * @brief  Send Data on a socket
  * @param  pdata : pointer to data to be sent
- * @param  len : length of data to be sent
+ * @param  Reqlen : packet size
+ * @param  SentDatalen : length of data to be sent
+ * @param  Timeout : how long to wait to send
  * @retval Operation status
  */
-WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
-		uint16_t *SentDatalen) {
+WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *SentDatalen, uint32_t Timeout) {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 
-	if (ES_WIFI_SendData(&EsWifiObj, socket, pdata, Reqlen, SentDatalen, 10000)
+	if (ES_WIFI_SendData(&EsWifiObj, socket, pdata, Reqlen, SentDatalen, Timeout)
 			== ES_WIFI_STATUS_OK) {
 		ret = WIFI_STATUS_OK;
 	}
@@ -421,14 +296,15 @@ WIFI_Status_t WIFI_SendData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
 /**
  * @brief  Receive Data from a socket
  * @param  pdata : pointer to Rx buffer
+ * @param  Reqlen : packet size
  * @param  *len :  pointer to length of data
+ * @param  Timeout : how long to wait to receive
  * @retval Operation status
  */
-WIFI_Status_t WIFI_ReceiveData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen,
-		uint16_t *RcvDatalen) {
+WIFI_Status_t WIFI_ReceiveData(uint8_t socket, uint8_t *pdata, uint16_t Reqlen, uint16_t *RcvDatalen, uint32_t Timeout) {
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 
-	if (ES_WIFI_ReceiveData(&EsWifiObj, socket, pdata, Reqlen, RcvDatalen, 10000)
+	if (ES_WIFI_ReceiveData(&EsWifiObj, socket, pdata, Reqlen, RcvDatalen, Timeout)
 			== ES_WIFI_STATUS_OK) {
 		ret = WIFI_STATUS_OK;
 	}

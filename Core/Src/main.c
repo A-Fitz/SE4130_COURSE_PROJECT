@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "wifi/access_point.h"
+#include "stm32f413h_discovery_lcd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -36,7 +37,11 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define MY_TICK_INT_PRIORITY 15
+
+// These are set for Font12
+#define MIN_LCD_LINE 2
+#define MAX_LCD_LINE 19
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -50,6 +55,8 @@ DFSDM_Channel_HandleTypeDef hdfsdm2_channel1;
 DFSDM_Channel_HandleTypeDef hdfsdm2_channel7;
 
 FMPI2C_HandleTypeDef hfmpi2c1;
+
+I2C_HandleTypeDef hi2c2;
 
 I2S_HandleTypeDef hi2s2;
 
@@ -66,10 +73,10 @@ UART_HandleTypeDef huart6;
 SRAM_HandleTypeDef hsram1;
 SRAM_HandleTypeDef hsram2;
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
+/* Definitions for connPollTask */
+osThreadId_t connPollTaskHandle;
+const osThreadAttr_t connPollTask_attributes = {
+  .name = "connPollTask",
   .priority = (osPriority_t) osPriorityLow,
   .stack_size = 2048 * 4
 };
@@ -81,7 +88,8 @@ const osThreadAttr_t motorControl_attributes = {
   .stack_size = 128 * 4
 };
 /* USER CODE BEGIN PV */
-bool apWorking = false;
+int lcdLine = MIN_LCD_LINE;
+
 bool forward = false;
 bool reverse = false;
 bool right = false;
@@ -108,11 +116,13 @@ static void MX_USART6_UART_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
-void StartDefaultTask(void *argument);
+static void MX_I2C2_Init(void);
+void StartConnectionPollTask(void *argument);
 void StartMotorControl(void *argument);
 
 /* USER CODE BEGIN PFP */
-
+void InitializeConnection(void);
+void InitializeLCD(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -127,7 +137,7 @@ void StartMotorControl(void *argument);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	HAL_NVIC_SetPriorityGrouping( NVIC_PRIORITYGROUP_4 );
+	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -136,7 +146,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-  //uwTickPrio = MY_TICK_INT_PRIORITY;
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -161,7 +171,11 @@ int main(void)
   MX_TIM4_Init();
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
+
+  InitializeLCD();
+  InitializeConnection();
 
   /* USER CODE END 2 */
 
@@ -185,8 +199,8 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* creation of connPollTask */
+  connPollTaskHandle = osThreadNew(StartConnectionPollTask, NULL, &connPollTask_attributes);
 
   /* creation of motorControl */
   motorControlHandle = osThreadNew(StartMotorControl, NULL, &motorControl_attributes);
@@ -404,6 +418,40 @@ static void MX_FMPI2C1_Init(void)
   /* USER CODE BEGIN FMPI2C1_Init 2 */
 
   /* USER CODE END FMPI2C1_Init 2 */
+
+}
+
+/**
+  * @brief I2C2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C2_Init(void)
+{
+
+  /* USER CODE BEGIN I2C2_Init 0 */
+
+  /* USER CODE END I2C2_Init 0 */
+
+  /* USER CODE BEGIN I2C2_Init 1 */
+
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.ClockSpeed = 100000;
+  hi2c2.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C2_Init 2 */
+
+  /* USER CODE END I2C2_Init 2 */
 
 }
 
@@ -811,14 +859,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(SD_Detect_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : ARD_D15_Pin ARD_D14_Pin */
-  GPIO_InitStruct.Pin = ARD_D15_Pin|ARD_D14_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  GPIO_InitStruct.Alternate = GPIO_AF4_I2C2;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
   /*Configure GPIO pins : LCD_CTP_RST_Pin LCD_TE_Pin WIFI_WKUP_Pin PB3
                            PB6 */
   GPIO_InitStruct.Pin = LCD_CTP_RST_Pin|LCD_TE_Pin|WIFI_WKUP_Pin|GPIO_PIN_3
@@ -893,7 +933,7 @@ static void MX_FSMC_Init(void)
   hsram1.Init.BurstAccessMode = FSMC_BURST_ACCESS_MODE_DISABLE;
   hsram1.Init.WaitSignalPolarity = FSMC_WAIT_SIGNAL_POLARITY_LOW;
   hsram1.Init.WaitSignalActive = FSMC_WAIT_TIMING_BEFORE_WS;
-  hsram1.Init.WriteOperation = FSMC_WRITE_OPERATION_DISABLE;
+  hsram1.Init.WriteOperation = FSMC_WRITE_OPERATION_ENABLE;
   hsram1.Init.WaitSignal = FSMC_WAIT_SIGNAL_DISABLE;
   hsram1.Init.ExtendedMode = FSMC_EXTENDED_MODE_DISABLE;
   hsram1.Init.AsynchronousWait = FSMC_ASYNCHRONOUS_WAIT_DISABLE;
@@ -959,78 +999,107 @@ static void MX_FSMC_Init(void)
 /* USER CODE BEGIN 4 */
 
 /**
- * @brief This is a one-shot task that will create a direct access point, wait for connection, and
- * 				then start a TCP server and wait for connection.
- * @retval none
+ * @brief Set up the LCD.
  */
-void InitialWifiTask(void)
+void InitializeLCD(void)
 {
-	apWorking = createAP();
-	while(APClients.count == 0)
+	BSP_LED_Init(LED4);
+	BSP_LCD_InitEx(LCD_ORIENTATION_LANDSCAPE_ROT180);
+	BSP_LCD_DisplayOn();
+	BSP_LCD_Clear(LCD_COLOR_WHITE);
+	BSP_LCD_SetBackColor(LCD_COLOR_BLUE);
+	BSP_LCD_SetFont(&Font12);
+	BSP_LCD_SetTextColor(LCD_COLOR_BLUE);
+	BSP_LCD_FillRect(0, 0, BSP_LCD_GetXSize(), (BSP_LCD_GetYSize() - 210));
+	BSP_LCD_SetTextColor(LCD_COLOR_WHITE);
+	BSP_LCD_DisplayStringAt(5, 10, (uint8_t *)"Team Nuclear Football", CENTER_MODE);
+	BSP_LCD_SetBackColor(LCD_COLOR_WHITE);
+	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+}
+
+int NextLCDLine(void)
+{
+	lcdLine += 1;
+
+	if(lcdLine > MAX_LCD_LINE)
 	{
-		apWorking = getClients();
+		lcdLine = MIN_LCD_LINE;
 	}
 
-	osDelay(500);
-	apWorking = startTCPServer();
-	osDelay(500); // Need time to finish setting up TCP server.
+	BSP_LCD_ClearStringLine(lcdLine);
 
-	HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_SET);  // Turn on green LED when ready to connect
-
-	//TODO [@fitzgeralaus] deal with connection timeout
-	apWorking = waitForTCPConnection();
-	osDelay(500); // Need time to finish setting up TCP connection.
-
-	if(apWorking)
-	{
-		HAL_GPIO_WritePin(LED2_GREEN_GPIO_Port, LED2_GREEN_Pin, GPIO_PIN_RESET); // Turn off green LED if connection successful
-	}
+	return lcdLine;
 }
 
 /**
- * @brief This is a periodic task that checks for received data and at the moment also transmits a test string.
- * @retval none
+ * @brief This function initializes both the access point and the TCP server.
+ * 				It will only end once a client joins the AP and connects to the TCP server.
  */
-void RecurringWifiTask(void)
+void InitializeConnection(void)
 {
-	if(apWorking)
+	AP_CreateAP();
+	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)"AP created.");
+
+	// Infinitely poll for a connection to the AP.
+	while(APClients.count == 0)
 	{
-		apWorking = receiveData();
-		if(recDataLen > 0)
-		{
-			HAL_UART_Transmit(&huart6, recData, recDataLen, HAL_MAX_DELAY);
-		}
+		AP_PollForConnectionToAP();
+	}
+	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)"AP client connected.");
+
+	AP_CreateTCPServer();
+	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)"TCP server created.");
+
+	AP_PollForTCPClient();
+	// Infinitely poll for a connection to the TCP server.
+	while(wifiStatus != WIFI_STATUS_OK && wifiStatus != WIFI_STATUS_ERROR)
+	{
+		AP_PollForTCPClient();
 	}
 
-	if(apWorking)
-	{
-		char* testSendData = "What's up dude?\n";
-		apWorking = sendData((uint8_t*)testSendData, (uint8_t*)strlen(testSendData));
-	}
+	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)"TCP client connected.");
 }
 
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_StartConnectionPollTask */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the connPollTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+/* USER CODE END Header_StartConnectionPollTask */
+void StartConnectionPollTask(void *argument)
 {
   /* init code for USB_HOST */
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
 
-  //InitialWifiTask();
+  double x = 0;
+  double y = 0;
 
-  for(;;)
-  {
-  	//RecurringWifiTask();
-  	osDelay(1000);
-  }
+	for(;;)
+	{
+		if(wifiStatus == WIFI_STATUS_OK)
+		{
+			AP_ReceiveData();
+			if(recDataLen > 0)
+			{
+				char toPrint[recDataLen + 1];
+				strncpy(toPrint, (char*)recData, recDataLen);
+				toPrint[recDataLen] = 0;
+				BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)toPrint);
+
+				char* eptr;
+				x = strtod(strtok(toPrint, ","), &eptr);
+				y = strtod(strtok(NULL, ","), &eptr);
+
+				// Send back the position
+				AP_SendData((uint8_t*)recData, (uint8_t)recDataLen);
+			}
+		}
+		osDelay(10);
+	}
 
   /* USER CODE END 5 */
 }
