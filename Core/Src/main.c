@@ -159,6 +159,8 @@ int main(void)
   MX_SPI3_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -1049,8 +1051,8 @@ void StartMotorControl(void *argument)
 	 * Use global variables forward, backward, right, and left to check if their is user input for any
 	 * Set global variables in a task that checks for user input from the wifi connection?
 	 */
-	int leftMotorSpeed = 0;
-	int rightMotorSpeed = 0;
+	int leftMotorSpeed = 1000;
+	int rightMotorSpeed = 1000;
 
 	for(;;)
 	{
@@ -1108,24 +1110,24 @@ void StartMotorControl(void *argument)
 
 		//Handles Max speed
 
-		if(leftMotorSpeed > 400)
+		if(leftMotorSpeed > 1600)
 		{
 
-			leftMotorSpeed = 20;
+			leftMotorSpeed = 1600;
 		}
-		if(leftMotorSpeed < -20)
+		if(leftMotorSpeed < -1600)
 		{
 
-			leftMotorSpeed = -20;
+			leftMotorSpeed = -1600;
 		}
 
-		if(rightMotorSpeed > 20)
+		if(rightMotorSpeed > 1600)
 		{
-			rightMotorSpeed = 20;
+			rightMotorSpeed = 1600;
 		}
-		if(rightMotorSpeed< -20)
+		if(rightMotorSpeed< -1600)
 		{
-			rightMotorSpeed = -20;
+			rightMotorSpeed = -1600;
 		}
 
 
