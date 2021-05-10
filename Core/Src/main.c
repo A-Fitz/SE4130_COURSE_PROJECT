@@ -90,16 +90,16 @@ const osThreadAttr_t motorControl_attributes = {
 /* USER CODE BEGIN PV */
 int lcdLine = MIN_LCD_LINE;
 
-bool forward = false;
-bool reverse = false;
-bool right = false;
-bool left = false;
-const int forwardSpeedBothMotors = 200; // Random number. Can be whatever we need it to be
-const int backwardSpeedBothMotors = -200;
-const int leftSpeedLeftMotor = 0;
-const int leftSpeedRightMotor = 200;
-const int rightSpeedLeftMotor = 200;
-const int rightSpeedRightMotor = 0;
+extern bool forward;
+extern bool reverse;
+extern bool right;
+extern bool left;
+const int FORWARD_SPEED_BOTH_MOTORS = 200; // Random number. Can be whatever we need it to be
+const int BACKWARD_SPEED_BOTH_MOTORS = -200;
+const int LEFT_SPEED_LEFT_MOTOR = 0;
+const int LEFT_SPEED_RIGHT_MOTOR = 200;
+const int RIGHT_SPEED_LEFT_MOTOR = 200;
+const int RIGHT_SPEED_RIGHT_MOTOR = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -169,8 +169,6 @@ int main(void)
   MX_SPI3_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 
@@ -1128,14 +1126,18 @@ void StartMotorControl(void *argument)
 
 		forward = true;
 
-
+		if (!forward && !reverse && !left && !right)
+		{
+			leftMotorSpeed = 0;
+			rightMotorSpeed = 0;
+		}
 		//Handles increase in speed
 		if(forward)
 		{
 
 			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
-			leftMotorSpeed += forwardSpeedBothMotors;
-			rightMotorSpeed += forwardSpeedBothMotors;
+			leftMotorSpeed += FORWARD_SPEED_BOTH_MOTORS;
+			rightMotorSpeed += FORWARD_SPEED_BOTH_MOTORS;
 
 			forward = false;
 
@@ -1147,9 +1149,9 @@ void StartMotorControl(void *argument)
 		if(reverse)
 		{
 
-			leftMotorSpeed += backwardSpeedBothMotors;
+			leftMotorSpeed += BACKWARD_SPEED_BOTH_MOTORS;
 
-			rightMotorSpeed += backwardSpeedBothMotors;
+			rightMotorSpeed += BACKWARD_SPEED_BOTH_MOTORS;
 
 			reverse = false;
 
@@ -1158,9 +1160,9 @@ void StartMotorControl(void *argument)
 		if(right)
 		{
 
-			leftMotorSpeed += rightSpeedLeftMotor;
+			leftMotorSpeed += RIGHT_SPEED_LEFT_MOTOR;
 
-			rightMotorSpeed += rightSpeedRightMotor;
+			rightMotorSpeed += RIGHT_SPEED_RIGHT_MOTOR;
 
 			right = false;
 
@@ -1170,9 +1172,9 @@ void StartMotorControl(void *argument)
 		if(left)
 		{
 			//Assert left pin
-			leftMotorSpeed += leftSpeedLeftMotor;
+			leftMotorSpeed += LEFT_SPEED_LEFT_MOTOR;
 
-			rightMotorSpeed += leftSpeedRightMotor;
+			rightMotorSpeed += LEFT_SPEED_RIGHT_MOTOR;
 
 			left = false;
 		}
