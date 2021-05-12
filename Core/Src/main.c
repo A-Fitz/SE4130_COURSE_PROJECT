@@ -1096,28 +1096,41 @@ void StartWifiInitTask(void *argument)
   	if(!hasStarted)
   	{
   		AP_CreateAP();
-  		xTaskNotify( xTaskToNotifyDisplay, "AP created.", eSetValueWithOverwrite);
-
-  		// Infinitely poll for a connection to the AP.
-  		while(APClients.count == 0)
+  		if(wifiStatus == WIFI_STATUS_OK)
   		{
-  			AP_PollForConnectionToAP();
+  			xTaskNotify(xTaskToNotifyDisplay, "AP created.", eSetValueWithOverwrite);
+  			// Infinitely wait for connection.
+  			while(APClients.count == 0)
+  			{
+  				AP_WaitForConnectionToAP();
+  			}
+  			if(wifiStatus == WIFI_STATUS_OK)
+  			{
+  				xTaskNotify(xTaskToNotifyDisplay, "AP client connected.", eSetValueWithOverwrite);
+  				AP_CreateTCPServer();
+  				if(wifiStatus == WIFI_STATUS_OK)
+  				{
+  					xTaskNotify(xTaskToNotifyDisplay, "TCP server created.", eSetValueWithOverwrite);
+  					if(wifiStatus == WIFI_STATUS_OK)
+  					{
+  						AP_WaitForNewTCPClient();
+  						if(wifiStatus == WIFI_STATUS_OK)
+  						{
+  							xTaskNotify(xTaskToNotifyDisplay, "TCP client connected.", eSetValueWithOverwrite);
+  							hasStarted = true;
+  						}
+  					}
+  				}
+  			}
   		}
-  		xTaskNotify( xTaskToNotifyDisplay, "AP client connected.", eSetValueWithOverwrite);
 
-  		AP_CreateTCPServer();
-  		xTaskNotify( xTaskToNotifyDisplay, "TCP server created.", eSetValueWithOverwrite);
-
-  		AP_PollForTCPClient();
-  		// Infinitely poll for a connection to the TCP server.
-  		while(wifiStatus != WIFI_STATUS_OK && wifiStatus != WIFI_STATUS_ERROR)
+  		if(wifiStatus == WIFI_STATUS_ERROR)
   		{
-  			AP_PollForTCPClient();
+  			xTaskNotify(xTaskToNotifyDisplay, "Error during wifi init.", eSetValueWithOverwrite);
+  		} else if(wifiStatus == WIFI_STATUS_TIMEOUT)
+  		{
+  			xTaskNotify(xTaskToNotifyDisplay, "Timeout during wifi init.", eSetValueWithOverwrite);
   		}
-
-  		xTaskNotify( xTaskToNotifyDisplay, "TCP client connected.", eSetValueWithOverwrite);
-
-  		hasStarted = true;
   	}
   }
   /* USER CODE END 5 */

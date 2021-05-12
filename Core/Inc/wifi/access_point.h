@@ -29,10 +29,10 @@ uint16_t sentDataLen;
 
 void AP_CreateAP(void);
 void AP_CloseAP(void);
-void AP_PollForConnectionToAP(void);
+void AP_WaitForConnectionToAP(void);
 void AP_CreateTCPServer(void);
 void AP_CloseTCPServer(void);
-void AP_PollForTCPClient(void);
+void AP_WaitForNewTCPClient(void);
 void AP_ReceiveData(void);
 void AP_SendData(uint8_t *sendData, uint8_t dataLen);
 
