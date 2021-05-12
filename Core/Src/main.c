@@ -1067,6 +1067,10 @@ void InitializeLCD(void)
 	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
 }
 
+/**
+ * @brief Treats the LCD lines like a circular queue. Clears LCD when full.
+ * @retval Index of the rear of the "queue". The next line index.
+ */
 int NextLCDLine(void)
 {
 	lcdLine += 1;
@@ -1164,10 +1168,10 @@ void StartWifiConnectionCheckTask(void *argument)
 			{
 				if(APClients.count != 0)
 				{
-					xTaskNotify(xTaskToNotifyRx, 0x00, eSetValueWithOverwrite); // Notify receive task
+					xTaskNotifyGive(xTaskToNotifyRx); // Notify receive task
 					if(wifiStatus == WIFI_STATUS_OK)
 					{
-						xTaskNotify(xTaskToNotifyTx, 0x00, eSetValueWithOverwrite); // Notify transmit task
+						xTaskNotifyGive(xTaskToNotifyTx); // Notify transmit task
 						if(wifiStatus != WIFI_STATUS_OK)
 						{
 							wifiErrored = true;
@@ -1211,17 +1215,9 @@ void StartWifiReceiveTask(void *argument)
 	{
 		if(wifiRunning && !wifiErrored)
 		{
-			uint32_t ulNotificationValue;
-			const TickType_t xMaxBlockTime = portMAX_DELAY; // Infinite wait time
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-			ulNotificationValue = ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
-
-			if(ulNotificationValue == 1)
-			{
-				AP_ReceiveData();
-			} else {
-				// Receive timeout
-			}
+			AP_ReceiveData();
 		}
 	}
 
@@ -1245,30 +1241,22 @@ void StartWifiTransmitTask(void *argument)
 	{
 		if(wifiRunning && !wifiErrored)
 		{
-			uint32_t ulNotificationValue;
-			const TickType_t xMaxBlockTime = portMAX_DELAY; // Infinite wait time
+			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-			ulNotificationValue = ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
-
-			if(ulNotificationValue == 1)
+			if(recDataLen > 0)
 			{
-				if(recDataLen > 0)
-				{
-					char toPrint[recDataLen + 1];
-					strncpy(toPrint, (char*)recData, recDataLen);
-					toPrint[recDataLen] = 0;
-					BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)toPrint);
+				char toPrint[recDataLen + 1];
+				strncpy(toPrint, (char*)recData, recDataLen);
+				toPrint[recDataLen] = 0;
+				BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)toPrint);
 
-					// Store the coordinates received
-					char* eptr;
-					x = strtod(strtok(toPrint, ","), &eptr);
-					y = strtod(strtok(NULL, ","), &eptr);
+				// Store the coordinates received
+				char* eptr;
+				x = strtod(strtok(toPrint, ","), &eptr);
+				y = strtod(strtok(NULL, ","), &eptr);
 
-					// Send back the position
-					AP_SendData((uint8_t*)recData, (uint8_t)recDataLen);
-				}
-			} else {
-				// Transmit timeout
+				// Send back the position
+				AP_SendData((uint8_t*)recData, (uint8_t)recDataLen);
 			}
 		}
 	}
