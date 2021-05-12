@@ -123,6 +123,12 @@ static TaskHandle_t xTaskToNotifyDisplay = NULL;
 
 int lcdLine = MIN_LCD_LINE;
 
+bool wifiRunning = false;
+bool wifiErrored = false;
+
+double x = 0;
+double y = 0;
+
 extern bool forward;
 extern bool reverse;
 extern bool right;
@@ -1089,11 +1095,10 @@ void StartWifiInitTask(void *argument)
   /* init code for USB_HOST */
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
-  bool hasStarted = false;
 
   for(;;)
   {
-  	if(!hasStarted)
+  	if(!wifiRunning && !wifiErrored)
   	{
   		AP_CreateAP();
   		if(wifiStatus == WIFI_STATUS_OK)
@@ -1102,7 +1107,7 @@ void StartWifiInitTask(void *argument)
   			// Infinitely wait for connection.
   			while(APClients.count == 0)
   			{
-  				AP_WaitForConnectionToAP();
+  				AP_PollAPClients();
   			}
   			if(wifiStatus == WIFI_STATUS_OK)
   			{
@@ -1113,22 +1118,26 @@ void StartWifiInitTask(void *argument)
   					xTaskNotify(xTaskToNotifyDisplay, "TCP server created.", eSetValueWithOverwrite);
   					if(wifiStatus == WIFI_STATUS_OK)
   					{
+  						// Only wait for the set timeout period.
   						AP_WaitForNewTCPClient();
   						if(wifiStatus == WIFI_STATUS_OK)
   						{
+  							wifiRunning = true;
   							xTaskNotify(xTaskToNotifyDisplay, "TCP client connected.", eSetValueWithOverwrite);
-  							hasStarted = true;
   						}
   					}
   				}
   			}
   		}
 
+  		// TODO Shut down the car because connection broken?
   		if(wifiStatus == WIFI_STATUS_ERROR)
   		{
+  			wifiErrored = true;
   			xTaskNotify(xTaskToNotifyDisplay, "Error during wifi init.", eSetValueWithOverwrite);
   		} else if(wifiStatus == WIFI_STATUS_TIMEOUT)
   		{
+  			wifiErrored = true;
   			xTaskNotify(xTaskToNotifyDisplay, "Timeout during wifi init.", eSetValueWithOverwrite);
   		}
   	}
@@ -1146,10 +1155,41 @@ void StartWifiInitTask(void *argument)
 void StartWifiConnectionCheckTask(void *argument)
 {
   /* USER CODE BEGIN StartWifiConnectionCheckTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
+
+	for(;;)
+	{
+		if(wifiStarted && !wifiErrored)
+		{
+			AP_PollAPClients();
+			if(wifiStatus == WIFI_STATUS_OK)
+			{
+				if(APClients.count != 0)
+				{
+					xTaskNotify(xTaskToNotifyRx, 0x00, eSetValueWithOverwrite); // Notify receive task
+					if(wifiStatus == WIFI_STATUS_OK)
+					{
+						xTaskNotify(xTaskToNotifyTx, 0x00, eSetValueWithOverwrite); // Notify transmit task
+						if(wifiStatus != WIFI_STATUS_OK)
+						{
+							wifiErrored = true;
+							xTaskNotify(xTaskToNotifyDisplay, "Error from wifi transmit task.", eSetValueWithOverwrite);
+						}
+					} else {
+						wifiErrored = true;
+						xTaskNotify(xTaskToNotifyDisplay, "Error from wifi receive task.", eSetValueWithOverwrite);
+					}
+				} else {
+					// TODO [@fitzgeralaus] is it possible that APClients will be empty even if a connection is made?
+					wifiErrored = true;
+					xTaskNotify(xTaskToNotifyDisplay, "Lost AP client.", eSetValueWithOverwrite);
+				}
+			} else {
+				wifiErrored = true;
+				xTaskNotify(xTaskToNotifyDisplay, "Error during wifi connection check.", eSetValueWithOverwrite);
+			}
+		}
+
+    osDelay(50);
   }
   /* USER CODE END StartWifiConnectionCheckTask */
 }
@@ -1164,8 +1204,6 @@ void StartWifiConnectionCheckTask(void *argument)
 void StartWifiReceiveTask(void *argument)
 {
   /* USER CODE BEGIN StartWifiReceiveTask */
-	double x = 0;
-	double y = 0;
 
 	for(;;)
 	{

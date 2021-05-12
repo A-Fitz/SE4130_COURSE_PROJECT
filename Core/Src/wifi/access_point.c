@@ -23,10 +23,10 @@ void AP_CloseAP(void)
 }
 
 /**
- * @brief Waits for a single connection to the AP.
+ * @brief Polls for AP clients. Stored in &APClients.
  * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-void AP_WaitForConnectionToAP(void)
+void AP_PollAPClients(void)
 {
 	wifiStatus = WIFI_ListAPClients(&APClients);
 }
