@@ -1130,7 +1130,6 @@ void StartWifiInitTask(void *argument)
   			}
   		}
 
-  		// TODO Shut down the car because connection broken?
   		if(wifiStatus == WIFI_STATUS_ERROR)
   		{
   			wifiErrored = true;
@@ -1158,7 +1157,7 @@ void StartWifiConnectionCheckTask(void *argument)
 
 	for(;;)
 	{
-		if(wifiStarted && !wifiErrored)
+		if(wifiRunning && !wifiErrored)
 		{
 			AP_PollAPClients();
 			if(wifiStatus == WIFI_STATUS_OK)
@@ -1189,8 +1188,9 @@ void StartWifiConnectionCheckTask(void *argument)
 			}
 		}
 
-    osDelay(50);
+    osDelay(50); // TODO what is our period for connection check / receive / send
   }
+
   /* USER CODE END StartWifiConnectionCheckTask */
 }
 
@@ -1205,28 +1205,26 @@ void StartWifiReceiveTask(void *argument)
 {
   /* USER CODE BEGIN StartWifiReceiveTask */
 
+	xTaskToNotifyRx = xTaskGetCurrentTaskHandle();
+
 	for(;;)
 	{
-		if(wifiStatus == WIFI_STATUS_OK)
+		if(wifiRunning && !wifiErrored)
 		{
-			AP_ReceiveData();
-			if(recDataLen > 0)
+			uint32_t ulNotificationValue;
+			const TickType_t xMaxBlockTime = portMAX_DELAY; // Infinite wait time
+
+			ulNotificationValue = ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
+
+			if(ulNotificationValue == 1)
 			{
-				char toPrint[recDataLen + 1];
-				strncpy(toPrint, (char*)recData, recDataLen);
-				toPrint[recDataLen] = 0;
-				BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)toPrint);
-
-				char* eptr;
-				x = strtod(strtok(toPrint, ","), &eptr);
-				y = strtod(strtok(NULL, ","), &eptr);
-
-				// Send back the position
-				AP_SendData((uint8_t*)recData, (uint8_t)recDataLen);
+				AP_ReceiveData();
+			} else {
+				// Receive timeout
 			}
 		}
-		osDelay(10);
 	}
+
   /* USER CODE END StartWifiReceiveTask */
 }
 
@@ -1239,13 +1237,43 @@ void StartWifiReceiveTask(void *argument)
 /* USER CODE END Header_StartWifiTransmitTask */
 void StartWifiTransmitTask(void *argument)
 {
-  /* USER CODE BEGIN StartWifiTransmitTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
-  /* USER CODE END StartWifiTransmitTask */
+	/* USER CODE BEGIN StartWifiTransmitTask */
+
+	xTaskToNotifyTx = xTaskGetCurrentTaskHandle();
+
+	for(;;)
+	{
+		if(wifiRunning && !wifiErrored)
+		{
+			uint32_t ulNotificationValue;
+			const TickType_t xMaxBlockTime = portMAX_DELAY; // Infinite wait time
+
+			ulNotificationValue = ulTaskNotifyTake(pdTRUE, xMaxBlockTime);
+
+			if(ulNotificationValue == 1)
+			{
+				if(recDataLen > 0)
+				{
+					char toPrint[recDataLen + 1];
+					strncpy(toPrint, (char*)recData, recDataLen);
+					toPrint[recDataLen] = 0;
+					BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)toPrint);
+
+					// Store the coordinates received
+					char* eptr;
+					x = strtod(strtok(toPrint, ","), &eptr);
+					y = strtod(strtok(NULL, ","), &eptr);
+
+					// Send back the position
+					AP_SendData((uint8_t*)recData, (uint8_t)recDataLen);
+				}
+			} else {
+				// Transmit timeout
+			}
+		}
+	}
+
+	/* USER CODE END StartWifiTransmitTask */
 }
 
 /* USER CODE BEGIN Header_StartMotorControlTask */
@@ -1416,7 +1444,7 @@ void StartDisplayUpdateTask(void *argument)
 
   for(;;)
   {
-  	BaseType_t notifyStatus = xTaskNotifyWait( 0x00, 0x00, &ulNotificationValue, xMaxBlockTime);
+  	xTaskNotifyWait(0x00, 0x00, &ulNotificationValue, xMaxBlockTime);
 
   	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)ulNotificationValue);
 
