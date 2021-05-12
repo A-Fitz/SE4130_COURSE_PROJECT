@@ -73,12 +73,33 @@ UART_HandleTypeDef huart6;
 SRAM_HandleTypeDef hsram1;
 SRAM_HandleTypeDef hsram2;
 
-/* Definitions for connPollTask */
-osThreadId_t connPollTaskHandle;
-const osThreadAttr_t connPollTask_attributes = {
-  .name = "connPollTask",
+/* Definitions for wifiInitTask */
+osThreadId_t wifiInitTaskHandle;
+const osThreadAttr_t wifiInitTask_attributes = {
+  .name = "wifiInitTask",
+  .priority = (osPriority_t) osPriorityLow,
+  .stack_size = 128 * 4
+};
+/* Definitions for wifiCheckTask */
+osThreadId_t wifiCheckTaskHandle;
+const osThreadAttr_t wifiCheckTask_attributes = {
+  .name = "wifiCheckTask",
+  .priority = (osPriority_t) osPriorityLow,
+  .stack_size = 128 * 4
+};
+/* Definitions for wifiRecTask */
+osThreadId_t wifiRecTaskHandle;
+const osThreadAttr_t wifiRecTask_attributes = {
+  .name = "wifiRecTask",
   .priority = (osPriority_t) osPriorityLow,
   .stack_size = 2048 * 4
+};
+/* Definitions for wifiTranTask */
+osThreadId_t wifiTranTaskHandle;
+const osThreadAttr_t wifiTranTask_attributes = {
+  .name = "wifiTranTask",
+  .priority = (osPriority_t) osPriorityLow,
+  .stack_size = 128 * 4
 };
 /* Definitions for motorControl */
 osThreadId_t motorControlHandle;
@@ -87,7 +108,19 @@ const osThreadAttr_t motorControl_attributes = {
   .priority = (osPriority_t) osPriorityLow,
   .stack_size = 128 * 4
 };
+/* Definitions for displayUpdateTa */
+osThreadId_t displayUpdateTaHandle;
+const osThreadAttr_t displayUpdateTa_attributes = {
+  .name = "displayUpdateTa",
+  .priority = (osPriority_t) osPriorityLow,
+  .stack_size = 128 * 4
+};
 /* USER CODE BEGIN PV */
+// Stores the handle of tasks that will be notified
+static TaskHandle_t xTaskToNotifyRx = NULL;
+static TaskHandle_t xTaskToNotifyTx = NULL;
+static TaskHandle_t xTaskToNotifyDisplay = NULL;
+
 int lcdLine = MIN_LCD_LINE;
 
 extern bool forward;
@@ -117,12 +150,16 @@ static void MX_SPI3_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
 static void MX_I2C2_Init(void);
-void StartConnectionPollTask(void *argument);
-void StartMotorControl(void *argument);
+void StartWifiInitTask(void *argument);
+void StartWifiConnectionCheckTask(void *argument);
+void StartWifiReceiveTask(void *argument);
+void StartWifiTransmitTask(void *argument);
+void StartMotorControlTask(void *argument);
+void StartDisplayUpdateTask(void *argument);
 
 /* USER CODE BEGIN PFP */
-void InitializeConnection(void);
 void InitializeLCD(void);
+int NextLCDLine(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -172,9 +209,6 @@ int main(void)
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 
-  InitializeLCD();
-  InitializeConnection();
-
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -197,11 +231,23 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of connPollTask */
-  connPollTaskHandle = osThreadNew(StartConnectionPollTask, NULL, &connPollTask_attributes);
+  /* creation of wifiInitTask */
+  wifiInitTaskHandle = osThreadNew(StartWifiInitTask, NULL, &wifiInitTask_attributes);
+
+  /* creation of wifiCheckTask */
+  wifiCheckTaskHandle = osThreadNew(StartWifiConnectionCheckTask, NULL, &wifiCheckTask_attributes);
+
+  /* creation of wifiRecTask */
+  wifiRecTaskHandle = osThreadNew(StartWifiReceiveTask, NULL, &wifiRecTask_attributes);
+
+  /* creation of wifiTranTask */
+  wifiTranTaskHandle = osThreadNew(StartWifiTransmitTask, NULL, &wifiTranTask_attributes);
 
   /* creation of motorControl */
-  motorControlHandle = osThreadNew(StartMotorControl, NULL, &motorControl_attributes);
+  motorControlHandle = osThreadNew(StartMotorControlTask, NULL, &motorControl_attributes);
+
+  /* creation of displayUpdateTa */
+  displayUpdateTaHandle = osThreadNew(StartDisplayUpdateTask, NULL, &displayUpdateTa_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1029,52 +1075,84 @@ int NextLCDLine(void)
 	return lcdLine;
 }
 
-/**
- * @brief This function initializes both the access point and the TCP server.
- * 				It will only end once a client joins the AP and connects to the TCP server.
- */
-void InitializeConnection(void)
-{
-	AP_CreateAP();
-	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)"AP created.");
-
-	// Infinitely poll for a connection to the AP.
-	while(APClients.count == 0)
-	{
-		AP_PollForConnectionToAP();
-	}
-	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)"AP client connected.");
-
-	AP_CreateTCPServer();
-	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)"TCP server created.");
-
-	AP_PollForTCPClient();
-	// Infinitely poll for a connection to the TCP server.
-	while(wifiStatus != WIFI_STATUS_OK && wifiStatus != WIFI_STATUS_ERROR)
-	{
-		AP_PollForTCPClient();
-	}
-
-	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)"TCP client connected.");
-}
-
 /* USER CODE END 4 */
 
-/* USER CODE BEGIN Header_StartConnectionPollTask */
+/* USER CODE BEGIN Header_StartWifiInitTask */
 /**
-  * @brief  Function implementing the connPollTask thread.
+  * @brief  Function implementing the wifiInitTask thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartConnectionPollTask */
-void StartConnectionPollTask(void *argument)
+/* USER CODE END Header_StartWifiInitTask */
+void StartWifiInitTask(void *argument)
 {
   /* init code for USB_HOST */
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
+  bool hasStarted = false;
 
-  double x = 0;
-  double y = 0;
+  for(;;)
+  {
+  	if(!hasStarted)
+  	{
+  		AP_CreateAP();
+  		xTaskNotify( xTaskToNotifyDisplay, "AP created.", eSetValueWithOverwrite);
+
+  		// Infinitely poll for a connection to the AP.
+  		while(APClients.count == 0)
+  		{
+  			AP_PollForConnectionToAP();
+  		}
+  		xTaskNotify( xTaskToNotifyDisplay, "AP client connected.", eSetValueWithOverwrite);
+
+  		AP_CreateTCPServer();
+  		xTaskNotify( xTaskToNotifyDisplay, "TCP server created.", eSetValueWithOverwrite);
+
+  		AP_PollForTCPClient();
+  		// Infinitely poll for a connection to the TCP server.
+  		while(wifiStatus != WIFI_STATUS_OK && wifiStatus != WIFI_STATUS_ERROR)
+  		{
+  			AP_PollForTCPClient();
+  		}
+
+  		xTaskNotify( xTaskToNotifyDisplay, "TCP client connected.", eSetValueWithOverwrite);
+
+  		hasStarted = true;
+  	}
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_StartWifiConnectionCheckTask */
+/**
+  * @brief  Function implementing the wifiConnCheckTa thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartWifiConnectionCheckTask */
+void StartWifiConnectionCheckTask(void *argument)
+{
+  /* USER CODE BEGIN StartWifiConnectionCheckTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartWifiConnectionCheckTask */
+}
+
+/* USER CODE BEGIN Header_StartWifiReceiveTask */
+/**
+  * @brief  Function implementing the wifiRecTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartWifiReceiveTask */
+void StartWifiReceiveTask(void *argument)
+{
+  /* USER CODE BEGIN StartWifiReceiveTask */
+	double x = 0;
+	double y = 0;
 
 	for(;;)
 	{
@@ -1098,156 +1176,203 @@ void StartConnectionPollTask(void *argument)
 		}
 		osDelay(10);
 	}
-
-  /* USER CODE END 5 */
+  /* USER CODE END StartWifiReceiveTask */
 }
 
-/* USER CODE BEGIN Header_StartMotorControl */
+/* USER CODE BEGIN Header_StartWifiTransmitTask */
+/**
+* @brief Function implementing the wifiTranTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartWifiTransmitTask */
+void StartWifiTransmitTask(void *argument)
+{
+  /* USER CODE BEGIN StartWifiTransmitTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartWifiTransmitTask */
+}
+
+/* USER CODE BEGIN Header_StartMotorControlTask */
 /**
 * @brief Function implementing the motorControl thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_StartMotorControl */
-void StartMotorControl(void *argument)
+/* USER CODE END Header_StartMotorControlTask */
+void StartMotorControlTask(void *argument)
 {
-  /* USER CODE BEGIN StartMotorControl */
+  /* USER CODE BEGIN StartMotorControlTask */
 	/* Infinite loop */
 
-	/**
-	 * Use global variables forward, backward, right, and left to check if their is user input for any
-	 * Set global variables in a task that checks for user input from the wifi connection?
-	 */
-	int leftMotorSpeed = 1000;
-	int rightMotorSpeed = 1000;
+		/**
+		 * Use global variables forward, backward, right, and left to check if their is user input for any
+		 * Set global variables in a task that checks for user input from the wifi connection?
+		 */
+		int leftMotorSpeed = 1000;
+		int rightMotorSpeed = 1000;
 
-	for(;;)
-	{
-
-		forward = true;
-
-		if (!forward && !reverse && !left && !right)
-		{
-			leftMotorSpeed = 0;
-			rightMotorSpeed = 0;
-		}
-		//Handles increase in speed
-		if(forward)
+		for(;;)
 		{
 
-			HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
-			leftMotorSpeed += FORWARD_SPEED_BOTH_MOTORS;
-			rightMotorSpeed += FORWARD_SPEED_BOTH_MOTORS;
+			forward = true;
 
-			forward = false;
+			if (!forward && !reverse && !left && !right)
+			{
+				leftMotorSpeed = 0;
+				rightMotorSpeed = 0;
+			}
+			//Handles increase in speed
+			if(forward)
+			{
 
-			//Assert forward pin
+				HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
+				leftMotorSpeed += FORWARD_SPEED_BOTH_MOTORS;
+				rightMotorSpeed += FORWARD_SPEED_BOTH_MOTORS;
+
+				forward = false;
+
+				//Assert forward pin
 
 
 
+			}
+			if(reverse)
+			{
+
+				leftMotorSpeed += BACKWARD_SPEED_BOTH_MOTORS;
+
+				rightMotorSpeed += BACKWARD_SPEED_BOTH_MOTORS;
+
+				reverse = false;
+
+				//Assert backward pin
+			}
+			if(right)
+			{
+
+				leftMotorSpeed += RIGHT_SPEED_LEFT_MOTOR;
+
+				rightMotorSpeed += RIGHT_SPEED_RIGHT_MOTOR;
+
+				right = false;
+
+				//Assert right pin
+
+			}
+			if(left)
+			{
+				//Assert left pin
+				leftMotorSpeed += LEFT_SPEED_LEFT_MOTOR;
+
+				rightMotorSpeed += LEFT_SPEED_RIGHT_MOTOR;
+
+				left = false;
+			}
+
+			//Handles Max speed
+
+			if(leftMotorSpeed > 1600)
+			{
+
+				leftMotorSpeed = 1600;
+			}
+			if(leftMotorSpeed < -1600)
+			{
+
+				leftMotorSpeed = -1600;
+			}
+
+			if(rightMotorSpeed > 1600)
+			{
+				rightMotorSpeed = 1600;
+			}
+			if(rightMotorSpeed< -1600)
+			{
+				rightMotorSpeed = -1600;
+			}
+
+
+			//Handles the direction
+			if(leftMotorSpeed > 0)
+			{
+
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
+			}
+			else if(leftMotorSpeed < 0)
+			{
+
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+			}
+			else if(leftMotorSpeed == 0)
+			{
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
+			}
+			if(rightMotorSpeed > 0)
+			{
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
+
+			}
+			else if(rightMotorSpeed < 0)
+			{
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
+			}
+			else if(rightMotorSpeed == 0)
+			{
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
+			}
+
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,leftMotorSpeed);// number for speed (pct time on out of 2000)
+			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,rightMotorSpeed);
+
+
+
+
+			osDelay(10);
 		}
-		if(reverse)
-		{
+  /* USER CODE END StartMotorControlTask */
+}
 
-			leftMotorSpeed += BACKWARD_SPEED_BOTH_MOTORS;
+/* USER CODE BEGIN Header_StartDisplayUpdateTask */
+/**
+* @brief Function implementing the displayUpdateTa thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartDisplayUpdateTask */
+void StartDisplayUpdateTask(void *argument)
+{
+  /* USER CODE BEGIN StartDisplayUpdateTask */
 
-			rightMotorSpeed += BACKWARD_SPEED_BOTH_MOTORS;
+	xTaskToNotifyDisplay = xTaskGetCurrentTaskHandle();
 
-			reverse = false;
+	uint32_t ulNotificationValue;
+	const TickType_t xMaxBlockTime = portMAX_DELAY; 		// infinite wait time
 
-			//Assert backward pin
-		}
-		if(right)
-		{
+	InitializeLCD();
 
-			leftMotorSpeed += RIGHT_SPEED_LEFT_MOTOR;
+  for(;;)
+  {
+  	BaseType_t notifyStatus = xTaskNotifyWait( 0x00, 0x00, &ulNotificationValue, xMaxBlockTime);
 
-			rightMotorSpeed += RIGHT_SPEED_RIGHT_MOTOR;
+  	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)ulNotificationValue);
 
-			right = false;
+    osDelay(100);
+  }
 
-			//Assert right pin
-
-		}
-		if(left)
-		{
-			//Assert left pin
-			leftMotorSpeed += LEFT_SPEED_LEFT_MOTOR;
-
-			rightMotorSpeed += LEFT_SPEED_RIGHT_MOTOR;
-
-			left = false;
-		}
-
-		//Handles Max speed
-
-		if(leftMotorSpeed > 1600)
-		{
-
-			leftMotorSpeed = 1600;
-		}
-		if(leftMotorSpeed < -1600)
-		{
-
-			leftMotorSpeed = -1600;
-		}
-
-		if(rightMotorSpeed > 1600)
-		{
-			rightMotorSpeed = 1600;
-		}
-		if(rightMotorSpeed< -1600)
-		{
-			rightMotorSpeed = -1600;
-		}
-
-
-		//Handles the direction
-		if(leftMotorSpeed > 0)
-		{
-
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-
-		}
-		else if(leftMotorSpeed < 0)
-		{
-
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-		}
-		else if(leftMotorSpeed == 0)
-		{
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-
-		}
-		if(rightMotorSpeed > 0)
-		{
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
-
-		}
-		else if(rightMotorSpeed < 0)
-		{
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
-		}
-		else if(rightMotorSpeed == 0)
-		{
-			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
-		}
-
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,leftMotorSpeed);// number for speed (pct time on out of 2000)
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,rightMotorSpeed);
-
-
-
-
-		osDelay(10);
-	}
-  /* USER CODE END StartMotorControl */
+  /* USER CODE END StartDisplayUpdateTask */
 }
 
 /**
