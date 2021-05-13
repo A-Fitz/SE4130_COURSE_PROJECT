@@ -12,20 +12,29 @@ var emit_position = function () {
 
 // Set up slider input
 $("#marker").draggable({
-	containment: "#markerbounds",
+	containment: '.map',
 	revertDuration: 200,
 	revert: 'invalid',
-	drag: function () {
-		slider.get_position();
+	drag: function(event, marker) {
+		// Keep inside the circle
+		var origin = slider.radius - slider.marker_radius;
+		var x = marker.position.left - origin;
+		var y = marker.position.top - origin;
+		var l = Math.sqrt(x*x + y*y);
+		var l_in = Math.min(slider.radius, l);
+		marker.position.left = x/l*l_in + origin;
+		marker.position.top = y/l*l_in + origin;
+		
+        slider.get_position();
 		emit_position();
-	},
+    },
 	stop: function () {
 		slider.get_position();
 		emit_position();
-	},
+	}
 });
 
-// x_size, y_size, xmax, ymax, marker_size, round_to
-slider.draw(250, 250, 1, 1, 50, 1);
+// containment_radius, xmax, ymax, marker_radius, round_to
+slider.draw(240, 1, 1, 25, 1);
 slider.get_position();
 emit_position();
