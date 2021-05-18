@@ -1307,9 +1307,17 @@ void StartMotorControlTask(void *argument)
 			{
 				rightMotorSpeed = 1999;
 			}
-			if (rightMotorSpeed > 1999)
+			if (leftMotorSpeed > 1999)
 			{
-				rightMotorSpeed = 1999;
+				leftMotorSpeed = 1999;
+			}
+			if (rightMotorSpeed < -1999)
+			{
+				rightMotorSpeed = -1999;
+			}
+			if (leftMotorSpeed < -1999)
+			{
+				leftMotorSpeed = -1999;
 			}
 			if(leftMotorSpeed > 0)
 			{
