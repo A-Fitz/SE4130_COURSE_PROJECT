@@ -105,7 +105,7 @@ const osThreadAttr_t wifiTranTask_attributes = {
 osThreadId_t motorControlHandle;
 const osThreadAttr_t motorControl_attributes = {
   .name = "motorControl",
-  .priority = (osPriority_t) osPriorityNormal2,
+  .priority = (osPriority_t) osPriorityHigh,
   .stack_size = 512 * 4
 };
 /* Definitions for dispUpdateTask */
@@ -213,9 +213,6 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_I2C2_Init();
-
-
-
   /* USER CODE BEGIN 2 */
 
 
@@ -248,10 +245,6 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-
-  /* creation of connPollTask */
-  //connPollTaskHandle = osThreadNew(StartConnectionPollTask, NULL, &connPollTask_attributes);
-
   /* creation of wifiInitTask */
   wifiInitTaskHandle = osThreadNew(StartWifiInitTask, NULL, &wifiInitTask_attributes);
 
@@ -1307,6 +1300,48 @@ void StartMotorControlTask(void *argument)
 
 		for(;;)
 		{
+			leftMotorSpeed = (int) ((1200* y) + (400 * x));
+			rightMotorSpeed = (int) ((1200* y) - (400 * x));
+			if(leftMotorSpeed > 0)
+			{
+
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
+			}
+			else if(leftMotorSpeed < 0)
+			{
+
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+			}
+			else if(leftMotorSpeed == 0)
+			{
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
+			}
+
+
+			if(rightMotorSpeed > 0)
+			{
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
+
+			}
+			else if(rightMotorSpeed < 0)
+			{
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
+			}
+			else if(rightMotorSpeed == 0)
+			{
+				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
+			}
+
+			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,abs(leftMotorSpeed));// number for speed (pct time on out of 2000)
+			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,abs(rightMotorSpeed));
 /*
 			forward = true;
 
