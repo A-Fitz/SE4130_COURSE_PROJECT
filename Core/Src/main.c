@@ -218,7 +218,6 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-<<<<<<< HEAD
 
 
   //InitializeLCD();
@@ -227,8 +226,6 @@ int main(void)
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
 
 
-=======
->>>>>>> 670e62640e944948f470e2e185df73723a3d2e05
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -251,10 +248,10 @@ int main(void)
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-<<<<<<< HEAD
+
   /* creation of connPollTask */
   //connPollTaskHandle = osThreadNew(StartConnectionPollTask, NULL, &connPollTask_attributes);
-=======
+
   /* creation of wifiInitTask */
   wifiInitTaskHandle = osThreadNew(StartWifiInitTask, NULL, &wifiInitTask_attributes);
 
@@ -266,7 +263,6 @@ int main(void)
 
   /* creation of wifiTranTask */
   wifiTranTaskHandle = osThreadNew(StartWifiTransmitTask, NULL, &wifiTranTask_attributes);
->>>>>>> 670e62640e944948f470e2e185df73723a3d2e05
 
   /* creation of motorControl */
   motorControlHandle = osThreadNew(StartMotorControlTask, NULL, &motorControl_attributes);
@@ -1438,12 +1434,6 @@ void StartMotorControlTask(void *argument)
   /* USER CODE END StartMotorControlTask */
 }
 
-<<<<<<< HEAD
-		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,leftMotorSpeed);// number for speed (pct time on out of 2000)
-		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,rightMotorSpeed);
-		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
-
-=======
 /* USER CODE BEGIN Header_StartDisplayUpdateTask */
 /**
 * @brief Function implementing the displayUpdateTa thread.
@@ -1454,7 +1444,6 @@ void StartMotorControlTask(void *argument)
 void StartDisplayUpdateTask(void *argument)
 {
   /* USER CODE BEGIN StartDisplayUpdateTask */
->>>>>>> 670e62640e944948f470e2e185df73723a3d2e05
 
 	xTaskToNotifyDisplay = xTaskGetCurrentTaskHandle();
 	uint32_t ulNotificationValue;
