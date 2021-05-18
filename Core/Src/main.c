@@ -170,10 +170,18 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   MX_I2C2_Init();
+
+
+
   /* USER CODE BEGIN 2 */
 
-  InitializeLCD();
-  InitializeConnection();
+
+
+  //InitializeLCD();
+  //InitializeConnection()
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
+
 
   /* USER CODE END 2 */
 
@@ -198,7 +206,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* creation of connPollTask */
-  connPollTaskHandle = osThreadNew(StartConnectionPollTask, NULL, &connPollTask_attributes);
+  //connPollTaskHandle = osThreadNew(StartConnectionPollTask, NULL, &connPollTask_attributes);
 
   /* creation of motorControl */
   motorControlHandle = osThreadNew(StartMotorControl, NULL, &motorControl_attributes);
@@ -1241,6 +1249,8 @@ void StartMotorControl(void *argument)
 
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,leftMotorSpeed);// number for speed (pct time on out of 2000)
 		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,rightMotorSpeed);
+		HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET);
+
 
 
 
