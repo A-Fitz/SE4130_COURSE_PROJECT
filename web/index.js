@@ -1,6 +1,6 @@
-const express = require('express');
-const http = require('http');
-const net = require('net');
+const express = require("express");
+const http = require("http");
+const net = require("net");
 const { Server } = require("socket.io");
 
 const app = express();
@@ -9,54 +9,60 @@ const io = new Server(server);
 const tcpSocket = new net.Socket();
 
 // Set up routes for resources
-app.get('/js/socket.io.min.js', function (req, res) {
-	res.sendFile(__dirname + '/node_modules/socket.io/client-dist/socket.io.min.js');
+app.get("/js/socket.io.min.js", function (req, res) {
+	res.sendFile(__dirname + "/node_modules/socket.io/client-dist/socket.io.min.js");
 });
-app.get('/js/jquery.min.js', function (req, res) {
-	res.sendFile(__dirname + '/node_modules/jquery/dist/jquery.min.js');
+app.get("/js/jquery.min.js", function (req, res) {
+	res.sendFile(__dirname + "/node_modules/jquery/dist/jquery.min.js");
 });
-app.get('/js/jquery-ui.min.js', function (req, res) {
-	res.sendFile(__dirname + '/node_modules/jquery-ui-dist/jquery-ui.min.js');
+app.get("/js/jquery-ui.min.js", function (req, res) {
+	res.sendFile(__dirname + "/node_modules/jquery-ui-dist/jquery-ui.min.js");
 });
-app.get('/js/jquery.ui.touch-punch.min.js', function (req, res) {
-	res.sendFile(__dirname + '/js/jquery.ui.touch-punch.min.js');
+app.get("/js/jquery.ui.touch-punch.min.js", function (req, res) {
+	res.sendFile(__dirname + "/js/jquery.ui.touch-punch.min.js");
 });
-app.get('/', (req, res) => {
-	res.sendFile(__dirname + '/index.html');
+app.get("/", (req, res) => {
+	res.sendFile(__dirname + "/index.html");
 });
-app.get('/js/client.js', (req, res) => {
-	res.sendFile(__dirname + '/js/client.js');
+app.get("/js/client.js", (req, res) => {
+	res.sendFile(__dirname + "/js/client.js");
 });
-app.get('/js/slider.js', (req, res) => {
-	res.sendFile(__dirname + '/js/slider.js');
+app.get("/js/slider.js", (req, res) => {
+	res.sendFile(__dirname + "/js/slider.js");
 });
-app.get('/style.css', (req, res) => {
-	res.sendFile(__dirname + '/style.css');
-});
-
-server.listen(8080, () => {
-	console.log('Listening on *:8080');
+app.get("/style.css", (req, res) => {
+	res.sendFile(__dirname + "/style.css");
 });
 
-var x = 0.5,
-	y = 0.5;
+const TCP_SERVER_IP = "192.168.10.1";
+const TCP_SERVER_PORT = 8080;
+const WEB_SERVER_PORT = 8080;
+const SEND_PERIOD = 5; // ms
+
+var x = 0,
+	y = 0;
 var canSend = true;
 
-io.on('connection', (webSocket) => {
-	console.log('Web client connected.');
+server.listen(WEB_SERVER_PORT, () => {
+	console.log("Listening on *:" + WEB_SERVER_PORT);
+});
 
-	tcpSocket.connect(8080, '192.168.10.1', function () {
-		tcpSocket.setEncoding('utf8');
-		console.log('Connected to TCP server.');
-		setInterval(sendPosition, 50);
+io.on("connection", (webSocket) => {
+	console.log("Web client connected.");
+
+	tcpSocket.connect(TCP_SERVER_PORT, TCP_SERVER_IP, function () {
+		tcpSocket.setEncoding("utf8");
+		console.log("Connected to TCP server.");
+		setInterval(sendPosition, SEND_PERIOD);
 	});
 
-	tcpSocket.on('data', function (recData) {
-		io.emit('inputIn', recData.split(','));
+	tcpSocket.on("data", function (recData) {
+		io.emit("inputIn", recData.split(","));
+		console.log("Received " + recData);
 		canSend = true;
 	});
 
-	webSocket.on('inputOut', ([i_x, i_y]) => {
+	webSocket.on("inputOut", ([i_x, i_y]) => {
 		x = i_x;
 		y = i_y;
 	});
@@ -66,7 +72,8 @@ io.on('connection', (webSocket) => {
 // on timer
 function sendPosition() {
 	if (canSend) {
-		tcpSocket.write(x + ',' + y, 'utf8', );
+		tcpSocket.write(x + "," + y, "utf8", );
+		console.log("Sent " + x + "," + y);
 		canSend = false;
 	}
 }

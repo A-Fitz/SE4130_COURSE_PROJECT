@@ -112,15 +112,15 @@ WIFI_Status_t WIFI_TerminateAP() {
  * @param APClients: Pointer to array of AP clients
  * @retval Operation success
  */
-WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients) {
+WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients, uint32_t Timeout) {
 	uint8_t APClientCount;
 	WIFI_Status_t ret = WIFI_STATUS_ERROR;
 	ES_WIFI_AP_Clients_t esWifiAPClients;
 
-	if (ES_WIFI_ListAPClients(&EsWifiObj, &esWifiAPClients)
+	if (ES_WIFI_ListAPClients(&EsWifiObj, &esWifiAPClients, Timeout)
 			== ES_WIFI_STATUS_OK) {
+		APClients->count = esWifiAPClients.count;
 		if (esWifiAPClients.count > 0) {
-			APClients->count = esWifiAPClients.count;
 			memcpy(&(APClients->count), &(esWifiAPClients.count),
 					sizeof(esWifiAPClients.count));
 			for (APClientCount = 0; APClientCount < APClients->count;

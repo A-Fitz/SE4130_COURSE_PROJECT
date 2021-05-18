@@ -23,12 +23,12 @@ void AP_CloseAP(void)
 }
 
 /**
- * @brief Waits for a single connection to the AP.
+ * @brief Polls for AP clients. Stored in &APClients.
  * 				Sets wifiStatus to WIFI_STATUS_OK or WIFI_STATUS_ERROR.
  */
-void AP_PollForConnectionToAP(void)
+void AP_PollAPClients(void)
 {
-	wifiStatus = WIFI_ListAPClients(&APClients);
+	wifiStatus = WIFI_ListAPClients(&APClients, AP_POLL_TIMEOUT);
 }
 
 /**
@@ -55,7 +55,7 @@ void AP_CloseTCPServer(void)
  * @brief Poll for a client connection to the running TCP server. Wait TCP_WAIT_TIMEOUT ms for the connection.
  * 				Sets wifiStatus to WIFI_STATUS_OK, WIFI_STATUS_TIMEOUT, or WIFI_STATUS_ERROR.
  */
-void AP_PollForTCPClient(void)
+void AP_WaitForNewTCPClient(void)
 {
 	wifiStatus = WIFI_WaitServerConnection(socket, TCP_WAIT_TIMEOUT, &remoteIP, &remotePort);
 }

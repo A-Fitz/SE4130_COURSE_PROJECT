@@ -767,16 +767,34 @@ ES_WIFI_Status_t ES_WIFI_DeactivateAP(ES_WIFIObject_t *Obj) {
  * @param APClients: Pointer to the AP clients array
  * @retval Operation success
  */
-ES_WIFI_Status_t ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj,
-		ES_WIFI_AP_Clients_t *APClients) {
+ES_WIFI_Status_t ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj, ES_WIFI_AP_Clients_t *APClients, uint32_t timeout) {
 	ES_WIFI_Status_t ret;
 
-	sprintf((char*) Obj->CmdData, "AR\r");
-	ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
-	if (ret == ES_WIFI_STATUS_OK) {
-		AT_ParseAPClients((char*) Obj->CmdData, APClients);
+	uint32_t t;
+	uint32_t tlast;
+	uint32_t tstart;
+
+	tstart = HAL_GetTick();
+	tlast = tstart + timeout;
+	if (tlast < tstart) {
+		tstart = 0;
 	}
-	return ret;
+
+	do {
+		sprintf((char*) Obj->CmdData, "AR\r");
+		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
+
+		if(ret == ES_WIFI_STATUS_OK)
+		{
+			AT_ParseAPClients((char*) Obj->CmdData, APClients);
+			return ES_WIFI_STATUS_OK;
+		}
+
+		Obj->fops.IO_Delay(100);
+		t = HAL_GetTick();
+	} while ((timeout == 0) || ((t < tlast) || (t < tstart)));
+
+	return ES_WIFI_STATUS_TIMEOUT;
 }
 
 /**
@@ -964,7 +982,7 @@ ES_WIFI_Status_t ES_WIFI_StartServerSingleConn(ES_WIFIObject_t *Obj,
 
 	if ((conn->Type != ES_WIFI_UDP_CONNECTION)
 			&& (conn->Type != ES_WIFI_UDP_LITE_CONNECTION)) {
-		sprintf((char*) Obj->CmdData, "PK=1,3000\r");
+		sprintf((char*) Obj->CmdData, "PK=0,0\r");
 		ret = AT_ExecuteCommand(Obj, Obj->CmdData, Obj->CmdData);
 	}
 
