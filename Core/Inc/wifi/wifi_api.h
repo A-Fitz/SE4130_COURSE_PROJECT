@@ -127,7 +127,7 @@ WIFI_Status_t WIFI_GetMAC_Address(uint8_t *mac);
 
 WIFI_Status_t WIFI_ConfigureAP(const char *ssid, const char *pass, WIFI_Ecn_t ecn, uint8_t channel, uint8_t max_conn);
 WIFI_Status_t WIFI_TerminateAP();
-WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients);
+WIFI_Status_t WIFI_ListAPClients(WIFI_AP_Clients_t *APClients, uint32_t Timeout);
 WIFI_Status_t WIFI_Disconnect(void);
 
 WIFI_Status_t WIFI_Ping(uint8_t *ipaddr, uint16_t count, uint16_t interval_ms);

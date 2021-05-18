@@ -268,8 +268,7 @@ ES_WIFI_Status_t ES_WIFI_ReceiveData(ES_WIFIObject_t *Obj, uint8_t Socket,
 ES_WIFI_Status_t ES_WIFI_ActivateAP(ES_WIFIObject_t *Obj,
 		ES_WIFI_APConfig_t *ApConfig);
 ES_WIFI_Status_t ES_WIFI_DeactivateAP(ES_WIFIObject_t *Obj);
-ES_WIFI_Status_t ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj,
-		ES_WIFI_AP_Clients_t *APClients);
+ES_WIFI_Status_t ES_WIFI_ListAPClients(ES_WIFIObject_t *Obj, ES_WIFI_AP_Clients_t *APClients, uint32_t timeout);
 
 #if (ES_WIFI_USE_FIRMWAREUPDATE == 1)
 ES_WIFI_Status_t  ES_WIFI_OTA_Upgrade(ES_WIFIObject_t *Obj, uint8_t *link);

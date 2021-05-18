@@ -37,7 +37,7 @@ app.get("/style.css", (req, res) => {
 const TCP_SERVER_IP = "192.168.10.1";
 const TCP_SERVER_PORT = 8080;
 const WEB_SERVER_PORT = 8080;
-const SEND_PERIOD = 50; // ms
+const SEND_PERIOD = 5; // ms
 
 var x = 0,
 	y = 0;
@@ -58,6 +58,7 @@ io.on("connection", (webSocket) => {
 
 	tcpSocket.on("data", function (recData) {
 		io.emit("inputIn", recData.split(","));
+		console.log("Received " + recData);
 		canSend = true;
 	});
 
@@ -72,6 +73,7 @@ io.on("connection", (webSocket) => {
 function sendPosition() {
 	if (canSend) {
 		tcpSocket.write(x + "," + y, "utf8", );
+		console.log("Sent " + x + "," + y);
 		canSend = false;
 	}
 }

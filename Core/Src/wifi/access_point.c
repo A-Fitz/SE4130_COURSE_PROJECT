@@ -28,7 +28,7 @@ void AP_CloseAP(void)
  */
 void AP_PollAPClients(void)
 {
-	wifiStatus = WIFI_ListAPClients(&APClients);
+	wifiStatus = WIFI_ListAPClients(&APClients, AP_POLL_TIMEOUT);
 }
 
 /**

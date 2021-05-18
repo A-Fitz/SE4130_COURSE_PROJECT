@@ -77,43 +77,43 @@ SRAM_HandleTypeDef hsram2;
 osThreadId_t wifiInitTaskHandle;
 const osThreadAttr_t wifiInitTask_attributes = {
   .name = "wifiInitTask",
-  .priority = (osPriority_t) osPriorityLow,
-  .stack_size = 128 * 4
+  .priority = (osPriority_t) osPriorityNormal1,
+  .stack_size = 512 * 4
 };
 /* Definitions for wifiCheckTask */
 osThreadId_t wifiCheckTaskHandle;
 const osThreadAttr_t wifiCheckTask_attributes = {
   .name = "wifiCheckTask",
-  .priority = (osPriority_t) osPriorityLow,
-  .stack_size = 128 * 4
+  .priority = (osPriority_t) osPriorityNormal,
+  .stack_size = 512 * 4
 };
 /* Definitions for wifiRecTask */
 osThreadId_t wifiRecTaskHandle;
 const osThreadAttr_t wifiRecTask_attributes = {
   .name = "wifiRecTask",
-  .priority = (osPriority_t) osPriorityLow,
-  .stack_size = 2048 * 4
+  .priority = (osPriority_t) osPriorityHigh,
+  .stack_size = 512 * 4
 };
 /* Definitions for wifiTranTask */
 osThreadId_t wifiTranTaskHandle;
 const osThreadAttr_t wifiTranTask_attributes = {
   .name = "wifiTranTask",
-  .priority = (osPriority_t) osPriorityLow,
-  .stack_size = 128 * 4
+  .priority = (osPriority_t) osPriorityHigh1,
+  .stack_size = 512 * 4
 };
 /* Definitions for motorControl */
 osThreadId_t motorControlHandle;
 const osThreadAttr_t motorControl_attributes = {
   .name = "motorControl",
-  .priority = (osPriority_t) osPriorityLow,
-  .stack_size = 128 * 4
+  .priority = (osPriority_t) osPriorityNormal2,
+  .stack_size = 512 * 4
 };
-/* Definitions for displayUpdateTa */
-osThreadId_t displayUpdateTaHandle;
-const osThreadAttr_t displayUpdateTa_attributes = {
-  .name = "displayUpdateTa",
-  .priority = (osPriority_t) osPriorityLow,
-  .stack_size = 128 * 4
+/* Definitions for dispUpdateTask */
+osThreadId_t dispUpdateTaskHandle;
+const osThreadAttr_t dispUpdateTask_attributes = {
+  .name = "dispUpdateTask",
+  .priority = (osPriority_t) osPriorityRealtime,
+  .stack_size = 512 * 4
 };
 /* USER CODE BEGIN PV */
 // Stores the handle of tasks that will be notified
@@ -252,8 +252,8 @@ int main(void)
   /* creation of motorControl */
   motorControlHandle = osThreadNew(StartMotorControlTask, NULL, &motorControl_attributes);
 
-  /* creation of displayUpdateTa */
-  displayUpdateTaHandle = osThreadNew(StartDisplayUpdateTask, NULL, &displayUpdateTa_attributes);
+  /* creation of dispUpdateTask */
+  dispUpdateTaskHandle = osThreadNew(StartDisplayUpdateTask, NULL, &dispUpdateTask_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -1054,7 +1054,7 @@ static void MX_FSMC_Init(void)
 void InitializeLCD(void)
 {
 	BSP_LED_Init(LED4);
-	BSP_LCD_InitEx(LCD_ORIENTATION_LANDSCAPE_ROT180);
+	BSP_LCD_InitEx(LCD_ORIENTATION_LANDSCAPE);
 	BSP_LCD_DisplayOn();
 	BSP_LCD_Clear(LCD_COLOR_WHITE);
 	BSP_LCD_SetBackColor(LCD_COLOR_BLUE);
@@ -1100,51 +1100,57 @@ void StartWifiInitTask(void *argument)
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 5 */
 
-  for(;;)
+  if(!wifiRunning && !wifiErrored)
   {
-  	if(!wifiRunning && !wifiErrored)
+  	AP_CreateAP();
+  	if(wifiStatus == WIFI_STATUS_OK)
   	{
-  		AP_CreateAP();
+  		xTaskNotify(xTaskToNotifyDisplay, "AP created.", eSetValueWithOverwrite);
+  		// Infinitely wait for connection.
+  		while(APClients.count == 0)
+  		{
+  			AP_PollAPClients();
+  		}
   		if(wifiStatus == WIFI_STATUS_OK)
   		{
-  			xTaskNotify(xTaskToNotifyDisplay, "AP created.", eSetValueWithOverwrite);
-  			// Infinitely wait for connection.
-  			while(APClients.count == 0)
-  			{
-  				AP_PollAPClients();
-  			}
+  			xTaskNotify(xTaskToNotifyDisplay, "AP client connected.", eSetValueWithOverwrite);
+  			AP_CreateTCPServer();
   			if(wifiStatus == WIFI_STATUS_OK)
   			{
-  				xTaskNotify(xTaskToNotifyDisplay, "AP client connected.", eSetValueWithOverwrite);
-  				AP_CreateTCPServer();
+  				xTaskNotify(xTaskToNotifyDisplay, "TCP server created.", eSetValueWithOverwrite);
   				if(wifiStatus == WIFI_STATUS_OK)
   				{
-  					xTaskNotify(xTaskToNotifyDisplay, "TCP server created.", eSetValueWithOverwrite);
+  					// Only wait for the set timeout period.
+  					AP_WaitForNewTCPClient();
   					if(wifiStatus == WIFI_STATUS_OK)
   					{
-  						// Only wait for the set timeout period.
-  						AP_WaitForNewTCPClient();
-  						if(wifiStatus == WIFI_STATUS_OK)
-  						{
-  							wifiRunning = true;
-  							xTaskNotify(xTaskToNotifyDisplay, "TCP client connected.", eSetValueWithOverwrite);
-  						}
+  						wifiRunning = true;
+  						xTaskNotify(xTaskToNotifyDisplay, "TCP client connected.", eSetValueWithOverwrite);
   					}
   				}
   			}
   		}
+  	}
 
-  		if(wifiStatus == WIFI_STATUS_ERROR)
-  		{
-  			wifiErrored = true;
-  			xTaskNotify(xTaskToNotifyDisplay, "Error during wifi init.", eSetValueWithOverwrite);
-  		} else if(wifiStatus == WIFI_STATUS_TIMEOUT)
-  		{
-  			wifiErrored = true;
-  			xTaskNotify(xTaskToNotifyDisplay, "Timeout during wifi init.", eSetValueWithOverwrite);
-  		}
+  	if(wifiStatus == WIFI_STATUS_ERROR)
+  	{
+  		wifiErrored = true;
+  		xTaskNotify(xTaskToNotifyDisplay, "Error during wifi init.", eSetValueWithOverwrite);
+  	} else if(wifiStatus == WIFI_STATUS_TIMEOUT)
+  	{
+  		wifiErrored = true;
+  		xTaskNotify(xTaskToNotifyDisplay, "Timeout during wifi init.", eSetValueWithOverwrite);
   	}
   }
+
+  vTaskDelete(xTaskGetCurrentTaskHandle());
+
+  // Never get here
+  for(;;)
+  {
+  	xTaskNotify(xTaskToNotifyDisplay, "Failed to delete WifiInit task.", eSetValueWithOverwrite);
+  }
+
   /* USER CODE END 5 */
 }
 
@@ -1158,42 +1164,32 @@ void StartWifiInitTask(void *argument)
 void StartWifiConnectionCheckTask(void *argument)
 {
   /* USER CODE BEGIN StartWifiConnectionCheckTask */
+	char rssiString[12];
 
 	for(;;)
 	{
 		if(wifiRunning && !wifiErrored)
 		{
 			AP_PollAPClients();
-			if(wifiStatus == WIFI_STATUS_OK)
+			if(wifiStatus == WIFI_STATUS_OK && APClients.count != 0)
 			{
-				if(APClients.count != 0)
+				sprintf(rssiString, "RSSI: %ddBm\0", APClients.Clients[0].ClientRSSI);
+				xTaskNotify(xTaskToNotifyDisplay, rssiString, eSetValueWithOverwrite);
+
+				xTaskNotifyGive(xTaskToNotifyRx); // Notify receive task
+				if(wifiStatus != WIFI_STATUS_OK)
 				{
-					xTaskNotifyGive(xTaskToNotifyRx); // Notify receive task
-					if(wifiStatus == WIFI_STATUS_OK)
-					{
-						xTaskNotifyGive(xTaskToNotifyTx); // Notify transmit task
-						if(wifiStatus != WIFI_STATUS_OK)
-						{
-							wifiErrored = true;
-							xTaskNotify(xTaskToNotifyDisplay, "Error from wifi transmit task.", eSetValueWithOverwrite);
-						}
-					} else {
-						wifiErrored = true;
-						xTaskNotify(xTaskToNotifyDisplay, "Error from wifi receive task.", eSetValueWithOverwrite);
-					}
-				} else {
-					// TODO [@fitzgeralaus] is it possible that APClients will be empty even if a connection is made?
 					wifiErrored = true;
-					xTaskNotify(xTaskToNotifyDisplay, "Lost AP client.", eSetValueWithOverwrite);
+					xTaskNotify(xTaskToNotifyDisplay, "Error from wifi receive task.", eSetValueWithOverwrite);
 				}
 			} else {
 				wifiErrored = true;
-				xTaskNotify(xTaskToNotifyDisplay, "Error during wifi connection check.", eSetValueWithOverwrite);
+				xTaskNotify(xTaskToNotifyDisplay, "Lost AP client.", eSetValueWithOverwrite);
 			}
 		}
 
-    osDelay(50); // TODO what is our period for connection check / receive / send
-  }
+		osDelay(200); // TODO what is our period for connection check / receive / send ?
+	}
 
   /* USER CODE END StartWifiConnectionCheckTask */
 }
@@ -1213,11 +1209,22 @@ void StartWifiReceiveTask(void *argument)
 
 	for(;;)
 	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		if(wifiRunning && !wifiErrored)
 		{
-			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
 			AP_ReceiveData();
+
+			// Send "confirmation" so controller can send next position
+			if(recDataLen > 0)
+			{
+				xTaskNotifyGive(xTaskToNotifyTx); // Notify transmit task
+
+				if(wifiStatus != WIFI_STATUS_OK)
+				{
+					wifiErrored = true;
+					xTaskNotify(xTaskToNotifyDisplay, "Error from wifi transmit task.", eSetValueWithOverwrite);
+				}
+			}
 		}
 	}
 
@@ -1233,22 +1240,22 @@ void StartWifiReceiveTask(void *argument)
 /* USER CODE END Header_StartWifiTransmitTask */
 void StartWifiTransmitTask(void *argument)
 {
-	/* USER CODE BEGIN StartWifiTransmitTask */
+  /* USER CODE BEGIN StartWifiTransmitTask */
 
 	xTaskToNotifyTx = xTaskGetCurrentTaskHandle();
 
 	for(;;)
 	{
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
 		if(wifiRunning && !wifiErrored)
 		{
-			ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
 			if(recDataLen > 0)
 			{
 				char toPrint[recDataLen + 1];
 				strncpy(toPrint, (char*)recData, recDataLen);
 				toPrint[recDataLen] = 0;
-				BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)toPrint);
+				xTaskNotify(xTaskToNotifyDisplay, (uint8_t*)toPrint, eSetValueWithOverwrite);
 
 				// Store the coordinates received
 				char* eptr;
@@ -1261,7 +1268,7 @@ void StartWifiTransmitTask(void *argument)
 		}
 	}
 
-	/* USER CODE END StartWifiTransmitTask */
+  /* USER CODE END StartWifiTransmitTask */
 }
 
 /* USER CODE BEGIN Header_StartMotorControlTask */
@@ -1285,7 +1292,7 @@ void StartMotorControlTask(void *argument)
 
 		for(;;)
 		{
-
+/*
 			forward = true;
 
 			if (!forward && !reverse && !left && !right)
@@ -1406,8 +1413,8 @@ void StartMotorControlTask(void *argument)
 
 
 
-
-			osDelay(10);
+*/
+			osDelay(1000);
 		}
   /* USER CODE END StartMotorControlTask */
 }
@@ -1424,19 +1431,15 @@ void StartDisplayUpdateTask(void *argument)
   /* USER CODE BEGIN StartDisplayUpdateTask */
 
 	xTaskToNotifyDisplay = xTaskGetCurrentTaskHandle();
-
 	uint32_t ulNotificationValue;
-	const TickType_t xMaxBlockTime = portMAX_DELAY; 		// infinite wait time
 
 	InitializeLCD();
 
   for(;;)
   {
-  	xTaskNotifyWait(0x00, 0x00, &ulNotificationValue, xMaxBlockTime);
+  	xTaskNotifyWait(0x00, 0x00, &ulNotificationValue, portMAX_DELAY);
 
   	BSP_LCD_DisplayStringAtLine(NextLCDLine(), (uint8_t*)ulNotificationValue);
-
-    osDelay(100);
   }
 
   /* USER CODE END StartDisplayUpdateTask */
