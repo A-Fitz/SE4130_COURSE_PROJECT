@@ -1300,8 +1300,17 @@ void StartMotorControlTask(void *argument)
 
 		for(;;)
 		{
-			leftMotorSpeed = (int) ((1200* y) + (400 * x));
-			rightMotorSpeed = (int) ((1200* y) - (400 * x));
+			leftMotorSpeed = (int) ((1950* y) + (800 * x));
+			rightMotorSpeed = (int) ((1950* y) - (800 * x));
+
+			if (rightMotorSpeed > 1999)
+			{
+				rightMotorSpeed = 1999;
+			}
+			if (rightMotorSpeed > 1999)
+			{
+				rightMotorSpeed = 1999;
+			}
 			if(leftMotorSpeed > 0)
 			{
 
