@@ -24,7 +24,15 @@
 4. Assemble the car per the kit instructions. The fasteners must be adequately tightened so that the motors stay aligned straight. 
 5. Mount the L298N, battery housing, and microcontroller such that they are secure but accessible. Our mounting strategy was poor so we cannot recommend much here.
 6. Connect wires.
-	1. 
+	1. Connect the spliced wires from the left motors to the Out1 and Out2 pins on the L298N board (It does not matter which goes where). In the same way, connect 
+	   the spliced wires from the right motors to the Out3 and Out4 pins.
+	2. Connect the In1 pin on the L298N board to the D7 pin on the STM32F413ZH board. (D7 corresponds to the PC13 pin)
+	3. Connect the In2 pin on the L298N board to the D8 pin on the STM32F413ZH board. (D8 corresponds to the PA4 pin)
+	4. Connect the In3 pin on the L298N board to the D4 pin on the STM32F413ZH board. (D4 corresponds to the PB6 pin)
+	5. Connect the In4 pin on the L298N board to the D2 pin on the STM32F413ZH board. (D2 corresponds to the PG13 pin)
+	6. Connect the ENA pin on the L298N board to the D6 pin on the STM32F413ZH board. (D6 corresponds to the PB0 pin)
+	7. Connect the ENB pin on the L298N board to the D9 pin on the STM32F413ZH board. (D9 corresponds to the PB8 pin)
+	8. Connect the power supply to the 12v and ground on the L298N board
 ### Hardware Lessons Learned
 - It would have been wise to wire a switch between the battery housing and L298N. Without one we must disconnect the jumper cable when not using the car in order to save batteries.
 - A single motor driver, paired with the 6 AA batteries, cannot adequately power all four motors. We should have chosen a lighter battery, more powerful motors, and possibly two motor drivers.
