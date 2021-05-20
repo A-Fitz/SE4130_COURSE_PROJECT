@@ -1288,10 +1288,6 @@ void StartMotorControlTask(void *argument)
 {
   /* USER CODE BEGIN StartMotorControlTask */
 
-	/**
-	 * Use global variables forward, backward, right, and left to check if their is user input for any
-	 * Set global variables in a task that checks for user input from the wifi connection?
-	 */
 	int leftMotorSpeed = 1000;
 	int rightMotorSpeed = 1000;
 
@@ -1300,28 +1296,28 @@ void StartMotorControlTask(void *argument)
 		leftMotorSpeed = (int) ((1950* y) + (800 * x));
 		rightMotorSpeed = (int) ((1950* y) - (800 * x));
 
-		if (rightMotorSpeed > 1999)
+		if(rightMotorSpeed > 1999)
 		{
 			rightMotorSpeed = 1999;
 		}
-		if (leftMotorSpeed > 1999)
+		if(leftMotorSpeed > 1999)
 		{
 			leftMotorSpeed = 1999;
 		}
-		if (rightMotorSpeed < -1999)
+		if(rightMotorSpeed < -1999)
 		{
 			rightMotorSpeed = -1999;
 		}
-		if (leftMotorSpeed < -1999)
+		if(leftMotorSpeed < -1999)
 		{
 			leftMotorSpeed = -1999;
 		}
+
 		if(leftMotorSpeed > 0)
 		{
 
 			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-
 		}
 		else if(leftMotorSpeed < 0)
 		{
@@ -1333,14 +1329,12 @@ void StartMotorControlTask(void *argument)
 		{
 			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
 			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-
 		}
 
 		if(rightMotorSpeed > 0)
 		{
 			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
 			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
-
 		}
 		else if(rightMotorSpeed < 0)
 		{
@@ -1355,8 +1349,10 @@ void StartMotorControlTask(void *argument)
 
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,abs(leftMotorSpeed)); // number for speed (pct time on out of 2000)
 		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,abs(rightMotorSpeed));
+
 		osDelay(1000);
 	}
+
   /* USER CODE END StartMotorControlTask */
 }
 
