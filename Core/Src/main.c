@@ -215,13 +215,8 @@ int main(void)
   MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
 
-
-
-  //InitializeLCD();
-  //InitializeConnection()
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
   HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-
 
   /* USER CODE END 2 */
 
@@ -1171,7 +1166,7 @@ void StartWifiInitTask(void *argument)
 /* USER CODE END Header_StartWifiConnectionCheckTask */
 void StartWifiConnectionCheckTask(void *argument)
 {
-  /* USER CODE BEGIN StartWifiConnectionCheckTask */
+	/* USER CODE BEGIN StartWifiConnectionCheckTask */
 	char rssiString[12];
 
 	for(;;)
@@ -1194,9 +1189,12 @@ void StartWifiConnectionCheckTask(void *argument)
 				wifiErrored = true;
 				xTaskNotify(xTaskToNotifyDisplay, "Lost AP client.", eSetValueWithOverwrite);
 			}
+		} else if(wifiErrored) {
+			x = 0;
+			y = 0;
 		}
 
-		osDelay(200); // TODO what is our period for connection check / receive / send ?
+		osDelay(200);
 	}
 
   /* USER CODE END StartWifiConnectionCheckTask */
@@ -1289,200 +1287,76 @@ void StartWifiTransmitTask(void *argument)
 void StartMotorControlTask(void *argument)
 {
   /* USER CODE BEGIN StartMotorControlTask */
-	/* Infinite loop */
 
-		/**
-		 * Use global variables forward, backward, right, and left to check if their is user input for any
-		 * Set global variables in a task that checks for user input from the wifi connection?
-		 */
-		int leftMotorSpeed = 1000;
-		int rightMotorSpeed = 1000;
+	/**
+	 * Use global variables forward, backward, right, and left to check if their is user input for any
+	 * Set global variables in a task that checks for user input from the wifi connection?
+	 */
+	int leftMotorSpeed = 1000;
+	int rightMotorSpeed = 1000;
 
-		for(;;)
+	for(;;)
+	{
+		leftMotorSpeed = (int) ((1950* y) + (800 * x));
+		rightMotorSpeed = (int) ((1950* y) - (800 * x));
+
+		if (rightMotorSpeed > 1999)
 		{
-			leftMotorSpeed = (int) ((1950* y) + (800 * x));
-			rightMotorSpeed = (int) ((1950* y) - (800 * x));
-
-			if (rightMotorSpeed > 1999)
-			{
-				rightMotorSpeed = 1999;
-			}
-			if (leftMotorSpeed > 1999)
-			{
-				leftMotorSpeed = 1999;
-			}
-			if (rightMotorSpeed < -1999)
-			{
-				rightMotorSpeed = -1999;
-			}
-			if (leftMotorSpeed < -1999)
-			{
-				leftMotorSpeed = -1999;
-			}
-			if(leftMotorSpeed > 0)
-			{
-
-				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-
-			}
-			else if(leftMotorSpeed < 0)
-			{
-
-				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-			}
-			else if(leftMotorSpeed == 0)
-			{
-				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-
-			}
-
-
-			if(rightMotorSpeed > 0)
-			{
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
-
-			}
-			else if(rightMotorSpeed < 0)
-			{
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
-			}
-			else if(rightMotorSpeed == 0)
-			{
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
-			}
-
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,abs(leftMotorSpeed));// number for speed (pct time on out of 2000)
-			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,abs(rightMotorSpeed));
-/*
-			forward = true;
-
-			if (!forward && !reverse && !left && !right)
-			{
-				leftMotorSpeed = 0;
-				rightMotorSpeed = 0;
-			}
-			//Handles increase in speed
-			if(forward)
-			{
-
-				HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET);
-				leftMotorSpeed += FORWARD_SPEED_BOTH_MOTORS;
-				rightMotorSpeed += FORWARD_SPEED_BOTH_MOTORS;
-
-				forward = false;
-
-				//Assert forward pin
-
-
-
-			}
-			if(reverse)
-			{
-
-				leftMotorSpeed += BACKWARD_SPEED_BOTH_MOTORS;
-
-				rightMotorSpeed += BACKWARD_SPEED_BOTH_MOTORS;
-
-				reverse = false;
-
-				//Assert backward pin
-			}
-			if(right)
-			{
-
-				leftMotorSpeed += RIGHT_SPEED_LEFT_MOTOR;
-
-				rightMotorSpeed += RIGHT_SPEED_RIGHT_MOTOR;
-
-				right = false;
-
-				//Assert right pin
-
-			}
-			if(left)
-			{
-				//Assert left pin
-				leftMotorSpeed += LEFT_SPEED_LEFT_MOTOR;
-
-				rightMotorSpeed += LEFT_SPEED_RIGHT_MOTOR;
-
-				left = false;
-			}
-
-			//Handles Max speed
-
-			if(leftMotorSpeed > 1600)
-			{
-
-				leftMotorSpeed = 1600;
-			}
-			if(leftMotorSpeed < -1600)
-			{
-
-				leftMotorSpeed = -1600;
-			}
-
-			if(rightMotorSpeed > 1600)
-			{
-				rightMotorSpeed = 1600;
-			}
-			if(rightMotorSpeed< -1600)
-			{
-				rightMotorSpeed = -1600;
-			}
-
-
-			//Handles the direction
-			if(leftMotorSpeed > 0)
-			{
-
-				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-
-			}
-			else if(leftMotorSpeed < 0)
-			{
-
-				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-			}
-			else if(leftMotorSpeed == 0)
-			{
-				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-
-			}
-			if(rightMotorSpeed > 0)
-			{
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
-
-			}
-			else if(rightMotorSpeed < 0)
-			{
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
-			}
-			else if(rightMotorSpeed == 0)
-			{
-				HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-				HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
-			}
-
-			__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,leftMotorSpeed);// number for speed (pct time on out of 2000)
-			__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,rightMotorSpeed);
-
-
-
-*/
-			osDelay(1000);
+			rightMotorSpeed = 1999;
 		}
+		if (leftMotorSpeed > 1999)
+		{
+			leftMotorSpeed = 1999;
+		}
+		if (rightMotorSpeed < -1999)
+		{
+			rightMotorSpeed = -1999;
+		}
+		if (leftMotorSpeed < -1999)
+		{
+			leftMotorSpeed = -1999;
+		}
+		if(leftMotorSpeed > 0)
+		{
+
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
+		}
+		else if(leftMotorSpeed < 0)
+		{
+
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+		}
+		else if(leftMotorSpeed == 0)
+		{
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+
+		}
+
+		if(rightMotorSpeed > 0)
+		{
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
+
+		}
+		else if(rightMotorSpeed < 0)
+		{
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
+		}
+		else if(rightMotorSpeed == 0)
+		{
+			HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
+		}
+
+		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_3,abs(leftMotorSpeed)); // number for speed (pct time on out of 2000)
+		__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3,abs(rightMotorSpeed));
+		osDelay(1000);
+	}
   /* USER CODE END StartMotorControlTask */
 }
 
